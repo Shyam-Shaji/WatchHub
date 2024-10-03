@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignUp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <style>
+        body {
+    background-color: #f2f7fb
+}
+
+.login-block {
+    margin: 30px auto;
+    min-height: 93.6vh
+}
+
+.login-block .auth-box {
+    margin: 20px auto 0;
+    max-width: 450px !important
+}
+
+.card {
+    border-radius: 5px;
+    -webkit-box-shadow: 0 0 5px 0 rgba(43, 43, 43, .1), 0 11px 6px -7px rgba(43, 43, 43, .1);
+    box-shadow: 0 0 5px 0 rgba(43, 43, 43, .1), 0 11px 6px -7px rgba(43, 43, 43, .1);
+    border: none;
+    margin-bottom: 30px;
+    -webkit-transition: all .3s ease-in-out;
+    transition: all .3s ease-in-out;
+        background-color: #fff;
+}
+
+.card .card-block {
+    padding: 1.25rem
+}
+
+.f-80 {
+    font-size: 80px
+}
+
+.form-group {
+    margin-bottom: 1.25em
+}
+
+.form-material .form-control {
+    display: inline-block;
+    height: 43px;
+    width: 100%;
+    border: none;
+    border-radius: 0;
+    font-size: 16px;
+    font-weight: 400;
+    padding: 9px;
+    background-color: transparent;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    border-bottom: 1px solid #ccc
+}
+
+.btn-md {
+    padding: 10px 16px;
+    font-size: 15px;
+    line-height: 23px
+}
+
+.btn-primary {
+    background-color: #4099ff;
+    border-color: #4099ff;
+    color: #fff;
+    cursor: pointer;
+    -webkit-transition: all ease-in .3s;
+    transition: all ease-in .3s
+}
+
+.btn {
+    border-radius: 2px;
+    text-transform: capitalize;
+    font-size: 15px;
+    padding: 10px 19px;
+    cursor: pointer
+}
+
+.m-b-20 {
+    margin-bottom: 20px
+}
+
+.btn-md {
+    padding: 10px 16px;
+    font-size: 15px;
+    line-height: 23px
+}
+
+.heading{
+
+  font-size: 21px;
+
+}
+
+#infoMessage p{
+
+      color: red !important;
+}
+
+
+.btn-google {
+        color: #545454;
+    background-color: #ffffff;
+    box-shadow: 0 1px 2px 1px #ddd;
+}
+
+
+.or-container {
+    align-items: center;
+    color: #ccc;
+    display: flex;
+    margin: 25px 0;
+}
+
+.line-separator {
+    background-color: #ccc;
+    flex-grow: 5;
+    height: 1px;
+}
+
+.or-label {
+    flex-grow: 1;
+    margin: 0 15px;
+    text-align: center;
+}
+
+.error-message {
+    color: red;
+    font-size: 12px;
+    display: none;
+}
+    </style>
+</head>
+<body>
+    <section class="login-block">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-12">
+                    <form id="signform" class="md-float-material form-material" action="/signup" method="POST">
+                        <div class="auth-box card">
+                            <div class="card-block">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <h3 class="text-center heading">Sign Up</h3>
+                                    </div>
+                                </div>
+    
+                                <!-- Display Name -->
+                                <div class="form-group form-primary">
+                                    <input type="text" class="form-control" name="name" value="" placeholder="Display name" id="name" onkeyup="nameValidateChecking()">
+                                    <div id="error1" class="error-message"></div>
+                                </div>
+    
+                                <!-- Email -->
+                                <div class="form-group form-primary">
+                                    <input type="text" class="form-control" name="email" value="" placeholder="Email" id="email" onkeyup="emailValidateChecking()">
+                                    <div id="error2" class="error-message"></div>
+                                </div>
+
+                                <!-- Phone Number (Newly Added Field) -->
+                                <div class="form-group form-primary">
+                                    <input type="text" class="form-control" name="phone" placeholder="Phone Number" value="" id="phone" pattern="[0-9]{10}" onkeyup="phoneValidateChecking()">
+                                    <!-- Optional pattern attribute ensures it's a 10-digit number -->
+                                     <div id="error3" class="error-message"></div>
+                                </div>
+    
+                                <!-- Password -->
+                                <div class="form-group form-primary">
+                                    <input type="password" class="form-control" name="password" placeholder="Password" value="" id="password" onkeyup="passwordValidateChecking()">
+                                    <div id="error4" class="error-message"></div>
+                                </div>
+    
+                                <!-- Repeat Password -->
+                                <div class="form-group form-primary">
+                                    <input type="password" class="form-control" name="password_confirm" placeholder="Repeat password" value="" id="password_confirm" onkeyup="passwordValidateChecking()">
+                                    <div id="error5" class="error-message"></div>
+                                </div>
+
+                                <%if(locals.message && locals.length>0){%>
+                                    <div class="alert alert-danger text-center">
+                                        <%= message %>
+                                    </div>
+                                <%}%>
+    
+                                <!-- Submit Button -->
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <input type="submit" class="btn btn-primary btn-md btn-block waves-effect text-center m-b-20" name="submit" value="Signup Now">
+                                    </div>
+                                </div>
+    
+                                <!-- OR Separator -->
+                                <div class="or-container">
+                                    <div class="line-separator"></div> 
+                                    <div class="or-label">or</div>
+                                    <div class="line-separator"></div>
+                                </div>
+    
+                                <!-- Google Signup Button -->
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <a class="btn btn-lg btn-google btn-block text-uppercase btn-outline" href="/auth/google">
+                                            <img src="https://img.icons8.com/color/16/000000/google-logo.png"> Signup Using Google
+                                        </a>
+                                    </div>
+                                </div>
+                                <br>
+    
+                                <!-- Login Link -->
+                                <p class="text-inverse text-center">Already have an account? <a href="/login" data-abc="true">Login</a></p>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script>
+
+        const nameId = document.getElementById('name');
+        const emailId = document.getElementById('email');
+        const phoneId = document.getElementById('phone');
+        const passwordId = document.getElementById('password');
+        const passwordConfirmId = document.getElementById('password_confirm');
+
+        const error1 = document.getElementById('error1');
+        const error2 = document.getElementById('error2');
+        const error3 = document.getElementById('error3');
+        const error4 = document.getElementById('error4');
+        const error5 = document.getElementById('error5');
+        const signform = document.getElementById('signform');
+
+        function nameValidateChecking(e){
+            const nameVal = nameId.value;
+            const namePattern = /^[A-Za-z\s]+$/;
+
+            if(nameVal.trim()===""){
+                error1.style.display = 'block';
+                error1.innerHTML = "Please enter a valid name";
+            }else if(!namePattern.test(nameVal)){
+                error1.style.display = 'block';
+                error1.innerHTML = "Name can only contain alphabets";
+            }else{
+                error1.style.display = 'none';
+                error1.innerHTML = "";
+            }
+
+        }
+
+        function emailValidateChecking(e){
+            const emailVal = emailId.value;
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if(emailVal.trim()===""){
+                error2.style.display = 'block';
+                error2.innerHTML = 'Enter email';
+            }else if(!emailVal.test(emailVal)){
+                error2.style.display = 'block';
+                error2.innerHTML = 'Enter valid email';
+            }else{
+                error2.style.display = 'none';
+                error2.innerHTML = '';
+            }
+        }
+
+        function phoneValidateChecking(e){
+            const phoneVal = phoneId.value;
+            const phonePattern = /^\+?[0-9]{1,4}[-\s]?[0-9]{10}$/;
+
+            if(phoneVal.trim()===""){
+                error3.style.display = 'block';
+                error3.innerHTML = 'Enter valid phone number';
+            }else if(phoneVal.length<10 || phoneVal.length>10){
+                error3.style.display = 'block';
+                error3.innerHTML = 'Enter 10 digits';
+            }else{
+                error3.style.display = 'none';
+                error3.innerHTML = "";
+            }
+        }
+
+        function passwordValidateChecking(e){
+            const passwordVal = passwordId.value;
+            const passwordConfirmVal = passwordConfirmId.value;
+            const alpha = /[a-zA-Z]/;
+            const digit = /\d/;
+
+            if(passwordVal.length < 8){
+                error4.style.display = 'block';
+                error4.innerHTML = 'Should contain atleast 8 charaters';
+            }else if(!alpha.test(passwordVal) || !digit.test(passwordVal)){
+                error4.style.display = 'none';
+                error4.innerHTML = 'Should contain alphabets and digits';
+            }else{
+                error4.style.display = 'none';
+                error4.innerHTML = '';
+            }
+
+            if(passwordVal !== passwordConfirmVal){
+                error5.style.display = 'none';
+                error5.innerHTML = 'Password do not match';
+            }else{
+                error5.style.display = 'none';
+                error5.innerHTML = '';
+            }
+
+        }
+
+
+        document.addEventListener('DOMContentLoad',function(){
+            signform.addEventListener('submit',function(e){
+
+                nameValidateChecking();
+                emailValidateChecking();
+                phoneValidateChecking();
+                passwordValidateChecking();
+
+
+                if(
+                    !nameId ||
+                    !emailId ||
+                    !phoneId ||
+                    !passwordId ||
+                    !error1 ||
+                    !error2 ||
+                    !error3 ||
+                    !error4 ||
+                    !error5 ||
+                    !signform
+                ){
+                    console.log('One or more elements not found');
+                }
+
+                if(
+                    error1.innerHTML ||
+                    error2.innerHTML ||
+                    error3.innerHTML ||
+                    error4.innerHTML ||
+                    erro5.innerHTML
+                ){
+                    e.preventDefault()
+                }
+
+            })
+        })
+
+    </script>
+</body>
+</html>
