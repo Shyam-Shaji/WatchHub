@@ -10,7 +10,7 @@ const brandSchema = new Schema({
         type : [String],
         required : true,
     },
-    isBlock : {
+    isBlocked : {
         type : Boolean,
         default : false,
     },

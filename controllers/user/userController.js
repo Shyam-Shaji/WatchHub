@@ -63,7 +63,7 @@ const pageNotFound = async(req,res)=>{
 const loadHomePage = async (req,res)=>{
     try {
         const user = req.session.user;
-        console.log('checkinggggg user : ',user);
+        // console.log('checkinggggg user : ',user);
 
         if(user){
 
