@@ -172,10 +172,129 @@ const removeProductOffer = async (req, res) => {
     }
 };
 
+const blockProduct = async(req,res)=>{
+    try {
+
+        let id = req.query.id;
+        await Product.updateOne({_id:id},{$set:{isBlocked:true}});
+        res.redirect('/admin/products');
+        
+    } catch (error) {
+        res.redirect('/admin/pageError');
+    }
+}
+
+const unblockProduct = async(req,res)=>{
+    try {
+
+        let id = req.query.id;
+        await Product.updateOne({_id:id},{$set:{isBlocked:false}});
+        res.redirect('/admin/products');
+        
+    } catch (error) {
+        res.redirect('/admin/pageError');
+    }
+}
+
+const getEditProduct = async(req,res)=>{
+    try {
+
+        const id = req.query.id;
+        const product = await Product.findOne({_id:id});
+        const category = await Category.find({});
+        const brand = await Brand.find({});
+        res.render('edit-product',{
+            product : product,
+            cat : category,
+            brand : brand,
+        })
+        
+    } catch (error) {
+        res.redirect('/admin/pageError');
+
+    }
+}
+
+const editProduct = async(req,res)=>{
+    try {
+
+        const id = req.params.id;
+        console.log('checking id coming:',id);
+        const product = await Product.findOne({_id:id});
+        const data = req.body;
+        console.log('checking data coming:',data);
+        const existingProduct = await Product.findOne({
+            productName : data.productName,
+            _id : {$ne:id},
+        })
+
+        if(existingProduct){
+            return res.status(400).json({error:"Product with this name already exists. Please try with another name"});
+        }
+
+        const images = [];
+        
+        if(req.files && req.files.length > 0){
+            for(let i = 0 ; i < req.files.length ; i++){
+                images.push(req.files[i].filename);
+            }
+        }
+
+        const updateFields = {
+            productName : data.productName,
+            description : data.description,
+            brand : data.brand,
+            category : data.category,
+            regualrPrice : data.regularPrice,
+            salePrice : data.salePrice,
+            quantity : data.quantity,
+            // color : data.color,
+        }
+
+        console.log('checking updatefields:',updateFields)
+
+        if(req.files.length>0){
+            updateFields.$push = {productImage:{$each:images}};
+        }
+
+        await Product.findByIdAndUpdate(id,updateFields,{new:true});
+        res.redirect('/admin/products');
+        
+    } catch (error) {
+        console.error(error);
+        res.redirect('/admin/pageError');
+    }
+}
+
+const deletSingleImage = async(req,res)=>{
+    try {
+
+        const {imageNameToServer,productIdToServer} = req.body;
+        const product = await Product.findByIdAndUpdate(productIdToServer,{$pull:{productImage:imageNameToServer}});
+        const imagePath = path.join('public','uploads','re-image',imageNameToServer);
+        if(fs.existsSync(imagePath)){
+            await fs.unlinkSync(imagePath);
+            console.log(`Image ${imageNameToServer} delete successfully`);
+        }else{
+            console.log(`Image ${imageNameToServer} not found`);
+        }
+
+        res.send({status:true});
+        
+    } catch (error) {
+        res.redirect('/admin/pageError');
+    }
+}
+
 module.exports = {
     getProductAddPage,
     addProducts,
     getAllProducts,
     addProductOffer,
     removeProductOffer,
+    blockProduct,
+    unblockProduct,
+    getEditProduct,
+    editProduct,
+    deletSingleImage,
 }

@@ -59,11 +59,11 @@
                                                 <i class="material-icons md-more_horiz"></i>
                                             </a>
                                             <div class="dropdown-menu">
-                                                <a class="dropdown-item" href="">Edit info</a>
+                                                <a class="dropdown-item" href="/admin/editProduct?id=<%= data[i]._id %>">Edit info</a>
                                                 <% if(data[i].isBlocked === false) {%>
-                                                <a class="dropdown-item" href="/admin/blockProduct?id=">Block</a>
+                                                <a class="dropdown-item" href="/admin/blockProduct?id=<%= data[i]._id %>">Block</a>
                                                     <% }else {%>
-                                                <a class="dropdown-item" href="/admin/unblockProduct">Unblock</a>
+                                                <a class="dropdown-item" href="/admin/unblockProduct?id=<%= data[i]._id %>">Unblock</a>
                                                 <% } %>
                                                 <% if(data[i].productOffer === 0) { %>
                                                     <a class="dropdown-item" href="javascript:void(0);" onclick="addOffer('<%= data[i]._id %>')">Add Offer</a>
