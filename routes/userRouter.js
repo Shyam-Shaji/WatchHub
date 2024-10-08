@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/user/userController');
+const profileController = require('../controllers/user/profileController');
 const passport = require('passport');
 
 router.get('/pageNotFound',userController.pageNotFound);
@@ -19,5 +20,14 @@ router.get('/auth/google',passport.authenticate('google',{scope:['profile','emai
 router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/signup'}),(req,res)=>{
     res.redirect('/')
 });
+
+//Profile Management
+router.get('/forgot-password',profileController.getForgotPassPage);
+router.post('/forgot-email-valid',profileController.forgotEmailValid);
+router.post('/verify-passForgot-otp',profileController.verifyForgotPassOtp);
+router.get('/reset-password',profileController.getRestPassPage);
+router.post('/resend-forgot-otp',profileController.resendOtp);
+router.post('/reset-password',profileController.postNewPassword);
+//Profile Management
 
 module.exports = router;
