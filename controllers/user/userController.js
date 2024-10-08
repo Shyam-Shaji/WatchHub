@@ -1,4 +1,6 @@
 const User = require('../../models/userSchema.js');
+const Category = require('../../models/categorySchema.js');
+const Product = require('../../models/productSchema.js');
 const nodemail = require('nodemailer');
 const bcrypt = require('bcrypt');
 const env = require('dotenv').config();
@@ -63,7 +65,14 @@ const pageNotFound = async(req,res)=>{
 const loadHomePage = async (req,res)=>{
     try {
         const user = req.session.user;
-        // console.log('checkinggggg user : ',user);
+       const categories = await Category.find({isListed: true});
+       let productData = await Product.find({
+        isBlocked: false,
+        category : {$in:categories.map(category=>category._id)},quantity :{$gt:0}
+       });
+
+       productData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+       productData = productData.slice(0,4);
 
         if(user){
 
@@ -76,14 +85,14 @@ const loadHomePage = async (req,res)=>{
             //     return res.status(404).send("User not found");
             // }
 
-            res.render('home',{ user:userData });
+            res.render('home',{ user:userData, products:productData });
 
         }else{
-            return res.render('home' , { user : null });
+            return res.render('home' , {products:productData}, { user : null }, );
         }
         
     } catch (error) {
-        console.log(error);
+        console.log("Home page not loading",error);
         res.status(500).send("Server Error");
     }
 }
