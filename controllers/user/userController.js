@@ -62,40 +62,36 @@ const pageNotFound = async(req,res)=>{
     }
 }
 
-const loadHomePage = async (req,res)=>{
+const loadHomePage = async (req, res) => {
     try {
         const user = req.session.user;
-       const categories = await Category.find({isListed: true});
-       let productData = await Product.find({
-        isBlocked: false,
-        category : {$in:categories.map(category=>category._id)},quantity :{$gt:0}
-       });
+        const categories = await Category.find({ isListed: true });
+        let productData = await Product.find({
+            isBlocked: false,
+            category: { $in: categories.map(category => category._id) },
+            quantity: { $gt: 0 }
+        }).limit(12);
 
-       productData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-       productData = productData.slice(0,4);
+        // Sorting products by createdAt date in descending order
+        productData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        productData = productData // Limiting to 4 latest products
 
-        if(user){
-
+        if (user) {
             const userData = await User.findOne({ _id: user });
+            console.log('Checking userData: ', userData);
 
-            console.log('checking userData: ',userData);
-
-            // if (!userData) {
-            //     console.log("User not found in the database.");
-            //     return res.status(404).send("User not found");
-            // }
-
-            res.render('home',{ user:userData, products:productData });
-
-        }else{
-            return res.render('home' , {products:productData}, { user : null }, );
+            // If user data is found, render with user
+            res.render('home', { user: userData, products: productData });
+        } else {
+            // Render without user if not logged in
+            return res.render('home', { products: productData, user: null });
         }
-        
     } catch (error) {
-        console.log("Home page not loading",error);
+        console.log("Home page not loading", error);
         res.status(500).send("Server Error");
     }
-}
+};
+
 
 // const signup = async(req,res)=>{
 
@@ -299,6 +295,34 @@ const login = async(req,res)=>{
     }
 }
 
+const loadProductDetail = async(req,res)=>{
+    try {
+
+        const productId = req.params.id;
+        const product = await Product.findById(productId);
+
+        console.log('checking the product detail image : ',product);
+
+        // if(!product){
+        //     return res.status(404).send('Product not found');
+        // }
+
+        const relatedProducts = await Product.find({
+            category: product.category,
+            _id: {$ne : productId}
+        }).limit(4);
+
+        console.log('checking releated product : ',relatedProducts);
+
+        res.render('productDetails',{product,
+            relatedProducts,
+            user: req.user});
+        
+    } catch (error) {
+        res.status(500).send('Server error');
+    }
+}
+
 
 module.exports = {
     loadHomePage,
@@ -310,5 +334,6 @@ module.exports = {
     verifyOtp,
     resendOtp,
     login,
+    loadProductDetail,
     
 }

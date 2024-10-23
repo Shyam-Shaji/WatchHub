@@ -3,6 +3,7 @@ const router = express.Router();
 const userController = require('../controllers/user/userController');
 const profileController = require('../controllers/user/profileController');
 const passport = require('passport');
+const auth = require('../middlewares/auth');
 
 router.get('/pageNotFound',userController.pageNotFound);
 router.get('/',userController.loadHomePage);
@@ -29,5 +30,9 @@ router.get('/reset-password',profileController.getRestPassPage);
 router.post('/resend-forgot-otp',profileController.resendOtp);
 router.post('/reset-password',profileController.postNewPassword);
 //Profile Management
+
+//product Details
+router.get('/productDetails/:id',auth.userAuth,userController.loadProductDetail);
+//product Details
 
 module.exports = router;

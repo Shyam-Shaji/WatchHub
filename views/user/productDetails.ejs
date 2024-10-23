@@ -1,0 +1,183 @@
+<%- include('../partials/user/header.ejs') %>
+
+<style>
+    @media (max-width: 768px) {
+  .detail-gallery,
+  .detail-info {
+    text-align: center;
+  }
+  
+  .detail-qty {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+}
+
+.product-image-slider figure img {
+    width: 100%; /* Ensure the image takes full width */
+    height: 90vh; /* Set a fixed height for the product image */
+    object-fit: cover; /* Ensure the image scales properly to fit the container */
+    border-radius: 10px; /* Keep the rounded corners if applicable */
+}
+
+</style>
+
+<div class="main">
+    <!-- Breadcrumb -->
+    <div class="page-header breadcrumb-wrap">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a>
+                <span></span> Product Details
+                <span></span> <%= product.name %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Section -->
+    <section class="mt-50 mb-50">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="product-detail accordion-detail">
+                        <!-- Product Gallery -->
+                        <div class="row mb-50">
+                            <div class="col-lg-6 col-md-12">
+                                <div class="detail-gallery">
+                                    <span class="zoom-icon"><i class="fi-rs-search"></i></span>
+                                    <div class="product-image-slider">
+                                        <% product.productImage.forEach(function(image) { %>
+                                            <figure class="border-radius-10">
+                                                <img src="/uploads/re-image/<%= image %>" alt="<%= product.name %>" class="img-fluid">
+                                            </figure>
+                                        <% }); %>
+                                    </div>
+                                    <div class="slider-nav-thumbnails d-flex justify-content-center mt-3">
+                                        <% product.productImage.forEach(function(thumbnail) { %>
+                                            <div class="thumbnail-item mx-1">
+                                                <img src="/uploads/re-image/<%= thumbnail %>" alt="<%= product.name %>" class="img-thumbnail">
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Product Details -->
+                            <div class="col-lg-6 col-md-12 mt-4 mt-lg-0">
+                                <div class="detail-info">
+                                    <h2 class="title-detail"><%= product.name %></h2>
+                                    <div class="product-detail-rating mb-3">
+                                        <div class="pro-details-brand">
+                                            <span>Brand: <a href="/shop-grid-right.html"><%= product.brand %></a></span>
+                                        </div>
+                                    </div>
+                                    <div class="clearfix product-price-cover">
+                                        <div class="product-price primary-color">
+                                            <ins><span class="text-brand">$<%= product.salePrice %></span></ins>
+                                            <del class="old-price font-md ml-15">$<%= product.regularPrice %></del>
+                                        </div>
+                                    </div>
+                                    <div class="bt-1 border-color-1 mt-15 mb-15"></div>
+
+                                    <div class="short-desc mb-30">
+                                        <p><%= product.description %></p>
+                                    </div>
+
+                                    <div class="product_sort_info font-xs mb-30">
+                                        <ul>
+                                            <li><i class="fi-rs-crown mr-5"></i> 1 Year Warranty</li>
+                                            <li><i class="fi-rs-refresh mr-5"></i> 30 Day Return Policy</li>
+                                            <li><i class="fi-rs-credit-card mr-5"></i> Cash on Delivery available</li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="bt-1 border-color-1 mt-30 mb-30"></div>
+
+                                    <div class="detail-extralink d-flex align-items-center">
+                                        <div class="detail-qty border radius d-inline-flex">
+                                            <a href="#" class="qty-down"><i class="fi-rs-angle-small-down"></i></a>
+                                            <span class="qty-val px-3">1</span>
+                                            <a href="#" class="qty-up"><i class="fi-rs-angle-small-up"></i></a>
+                                        </div>
+                                        <div class="product-extra-link2 ml-3">
+                                            <button type="submit" class="button button-add-to-cart">Add to cart</button>
+                                            <a aria-label="Add To Wishlist" class="action-btn hover-up ml-2" href="shop-wishlist.html">
+                                                <i class="fi-rs-heart"></i>
+                                            </a>
+                                            <a aria-label="Compare" class="action-btn hover-up ml-2" href="shop-compare.html">
+                                                <i class="fi-rs-shuffle"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <ul class="product-meta font-xs color-grey mt-50">
+                                        <li>Availability: <span class="in-stock text-success ml-2"><%= product.quantity %> In Stock</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Product Description -->
+                        <div class="row">
+                            <div class="col-lg-10 m-auto entry-main-content">
+                                <h2 class="section-title style-1 mb-30">Description</h2>
+                                <div class="description mb-50">
+                                    <p><%= product.description %></p>
+                                    <hr class="wp-block-separator is-style-dots">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Related Products -->
+                        <div class="row mt-60">
+                            <div class="col-12">
+                                <h3 class="section-title style-1 mb-30">Related products</h3>
+                                <div class="row related-products">
+                                    <% relatedProducts.forEach(function(product) { %>
+                                        <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                                            <div class="product-cart-wrap small hover-up">
+                                                <div class="product-img-action-wrap">
+                                                    <div class="product-img product-img-zoom">
+                                                        <a href="/shop-product/<%= product._id %>">
+                                                            <img class="default-img img-fluid" src="/uploads/re-image/<%= product.productImage[0] %>" alt="<%= product.productName %>">
+                                                            <img class="hover-img img-fluid" src="/uploads/re-image/<%= product.hoverImage %>" alt="<%= product.productName %>">
+                                                        </a>
+                                                    </div>
+                                                    <div class="product-action-1">
+                                                        <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal">
+                                                            <i class="fi-rs-search"></i>
+                                                        </a>
+                                                        <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="/shop-wishlist.html">
+                                                            <i class="fi-rs-heart"></i>
+                                                        </a>
+                                                        <a aria-label="Compare" class="action-btn small hover-up" href="/shop-compare.html">
+                                                            <i class="fi-rs-shuffle"></i>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                <div class="product-content-wrap">
+                                                    <h2><a href="/shop-product/<%= product._id %>"><%= product.productName %></a></h2>
+                                                    <div class="product-price">
+                                                        <span>$<%= product.salePrice %></span>
+                                                        <% if (product.originalPrice) { %>
+                                                            <span class="old-price">$<%= product.originalPrice %></span>
+                                                        <% } %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+
+<%- include('../partials/user/footer.ejs') -%>
