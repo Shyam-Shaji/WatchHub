@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/user/userController');
 const profileController = require('../controllers/user/profileController');
+const addressController = require('../controllers/user/addressController');
 const passport = require('passport');
 const auth = require('../middlewares/auth');
 
@@ -34,5 +35,13 @@ router.post('/reset-password',profileController.postNewPassword);
 //product Details
 router.get('/productDetails/:id',auth.userAuth,userController.loadProductDetail);
 //product Details
+
+//user profile
+router.get('/user-profile',userController.userDashboard);
+//user profile
+
+//user address
+router.post('/addAddress',addressController.addAddress);
+//user address
 
 module.exports = router;

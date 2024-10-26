@@ -323,6 +323,30 @@ const loadProductDetail = async(req,res)=>{
     }
 }
 
+//user dashboard
+const userDashboard = async (req, res) => {
+    try {
+        
+        const userId = req.session.user; 
+
+        
+        const user = await User.findById(userId);
+
+        
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+
+        
+        res.render('user-profile', { user });
+        
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server Error');
+    }
+};
+
+
 
 module.exports = {
     loadHomePage,
@@ -335,5 +359,6 @@ module.exports = {
     resendOtp,
     login,
     loadProductDetail,
+    userDashboard,
     
 }

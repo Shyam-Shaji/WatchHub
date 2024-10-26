@@ -1,0 +1,300 @@
+<style>
+    .error { color: red; font-size: 0.9em; }
+</style>
+
+<%- include('../partials/user/header.ejs') -%>
+
+<section class="pt-150 pb-150">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-10 m-auto">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="dashboard-menu">
+                            <ul class="nav flex-column" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" href="#dashboard" role="tab" aria-controls="dashboard" aria-selected="false"><i class="fi-rs-settings-sliders mr-10"></i>Dashboard</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="orders-tab" data-bs-toggle="tab" href="#orders" role="tab" aria-controls="orders" aria-selected="false"><i class="fi-rs-shopping-bag mr-10"></i>Orders</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="track-orders-tab" data-bs-toggle="tab" href="#track-orders" role="tab" aria-controls="track-orders" aria-selected="false"><i class="fi-rs-shopping-cart-check mr-10"></i>Track Your Order</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="address-tab" data-bs-toggle="tab" href="#address" role="tab" aria-controls="address" aria-selected="true"><i class="fi-rs-marker mr-10"></i>My Address</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="account-detail-tab" data-bs-toggle="tab" href="#account-detail" role="tab" aria-controls="account-detail" aria-selected="true"><i class="fi-rs-user mr-10"></i>Account details</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="page-login-register.html"><i class="fi-rs-sign-out mr-10"></i>Logout</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="tab-content dashboard-content">
+                            <div class="tab-pane fade active show" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Hello <%= user.name %>!</h5> 
+                                    </div>
+                                    <div class="card-body">
+                                        <p>From your account dashboard, you can easily check &amp; view your <a href="#">recent orders</a>, manage your <a href="#">shipping and billing addresses</a>, and <a href="#">edit your password and account details.</a></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="orders" role="tabpanel" aria-labelledby="orders-tab">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Your Orders</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Order</th>
+                                                        <th>Date</th>
+                                                        <th>Status</th>
+                                                        <th>Total</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>#1357</td>
+                                                        <td>March 45, 2020</td>
+                                                        <td>Processing</td>
+                                                        <td>$125.00 for 2 item</td>
+                                                        <td><a href="#" class="btn-small d-block">View</a></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>#2468</td>
+                                                        <td>June 29, 2020</td>
+                                                        <td>Completed</td>
+                                                        <td>$364.00 for 5 item</td>
+                                                        <td><a href="#" class="btn-small d-block">View</a></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>#2366</td>
+                                                        <td>August 02, 2020</td>
+                                                        <td>Completed</td>
+                                                        <td>$280.00 for 3 item</td>
+                                                        <td><a href="#" class="btn-small d-block">View</a></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="track-orders" role="tabpanel" aria-labelledby="track-orders-tab">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Orders tracking</h5>
+                                    </div>
+                                    <div class="card-body contact-from-area">
+                                        <p>To track your order please enter your OrderID in the box below and press "Track" button. This was given to you on your receipt and in the confirmation email you should have received.</p>
+                                        <div class="row">
+                                            <div class="col-lg-8">
+                                                <form class="contact-form-style mt-30 mb-50" action="#" method="post">
+                                                    <div class="input-style mb-20">
+                                                        <label>Order ID</label>
+                                                        <input name="order-id" placeholder="Found in your order confirmation email" type="text" class="square">
+                                                    </div>
+                                                    <div class="input-style mb-20">
+                                                        <label>Billing email</label>
+                                                        <input name="billing-email" placeholder="Email you used during checkout" type="email" class="square">
+                                                    </div>
+                                                    <button class="submit submit-auto-width" type="submit">Track</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <div class="card mb-3 mb-lg-0">
+                                            <div class="card-header">
+                                                <h5 class="mb-0">Billing Address</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <address>3522 Interstate<br> 75 Business Spur,<br> Sault Ste. <br>Marie, MI 49783</address>
+                                                <p>New York</p>
+                                                <a href="#" class="btn-small">Edit</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h5 class="mb-0">Shipping Address</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <address>4299 Express Lane<br>
+                                                    Sarasota, <br>FL 34249 USA <br>Phone: 1.941.227.4444</address>
+                                                <p>Sarasota</p>
+                                                <a href="#" class="btn-small">Edit</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="account-detail" role="tabpanel" aria-labelledby="account-detail-tab">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Account Details</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Already have an account? <a href="page-login-register.html">Log in instead!</a></p>
+                                        <form id="addressForm" method="post" action="/addAddress" onsubmit="return validateForm()">
+                                            <div class="row">
+                                                <div class="form-group col-md-6">
+                                                    <label>Address Type <span class="required">*</span></label>
+                                                    <input  name="addressType" id="addressType" type="text" placeholder="e.g., Home, Work">
+                                                    <small id="addressTypeError" class="error"></small>
+                                                </div>
+                                                <div class="form-group col-md-6">
+                                                    <label>Name <span class="required">*</span></label>
+                                                    <input  name="name" id="name" type="text">
+                                                    <small id="nameError" class="error"></small>
+                                                </div>
+                                                <div class="form-group col-md-6">
+                                                    <label>City <span class="required">*</span></label>
+                                                    <input  name="city" id="city" type="text">
+                                                    <small id="cityError" class="error"></small>
+                                                </div>
+                                                <div class="form-group col-md-6">
+                                                    <label>Landmark <span class="required">*</span></label>
+                                                    <input  name="landMark" id="landMark" type="text">
+                                                    <small id="landMarkError" class="error"></small>
+                                                </div>
+                                                <div class="form-group col-md-6">
+                                                    <label>State <span class="required">*</span></label>
+                                                    <input  name="state" id="state" type="text">
+                                                    <small id="stateError" class="error"></small>
+                                                </div>
+                                                <div class="form-group col-md-6">
+                                                    <label>Pincode <span class="required">*</span></label>
+                                                    <input  name="pincode" id="pincode" type="number">
+                                                    <small id="pincodeError" class="error"></small>
+                                                </div>
+                                                <div class="form-group col-md-6">
+                                                    <label>Phone <span class="required">*</span></label>
+                                                    <input  name="phone" id="phone" type="text">
+                                                    <small id="phoneError" class="error"></small>
+                                                </div>
+                                                <div class="form-group col-md-6">
+                                                    <label>Alternative Phone <span class="required">*</span></label>
+                                                    <input  name="altPhone" id="altPhone" type="text">
+                                                    <small id="altPhoneError" class="error"></small>
+                                                </div>
+                                                <div class="col-md-12">
+                                                    <button type="submit" class="btn btn-fill-out submit" name="submit" value="Submit">Save Address</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<%- include('../partials/user/footer.ejs') -%>
+
+<script>
+    function validateForm() {
+        let isValid = true;
+        
+        // Clear all previous errors
+        document.querySelectorAll(".error").forEach(el => el.textContent = "");
+
+        // Regular expressions for validation
+        const textRegex = /^[a-zA-Z\s]+$/;
+        const pincodeRegex = /^[0-9]{6}$/;
+        const phoneRegex = /^[0-9]{10}$/;
+
+        // Address Type
+        const addressType = document.getElementById("addressType").value;
+        if (!textRegex.test(addressType)) {
+            document.getElementById("addressTypeError").textContent = "Invalid address type.";
+            isValid = false;
+        }
+
+        // Name
+        const name = document.getElementById("name").value;
+        if (!textRegex.test(name)) {
+            document.getElementById("nameError").textContent = "Name should contain only letters.";
+            isValid = false;
+        }
+
+        // City
+        const city = document.getElementById("city").value;
+        if (!textRegex.test(city)) {
+            document.getElementById("cityError").textContent = "City should contain only letters.";
+            isValid = false;
+        }
+
+        // Landmark
+        const landMark = document.getElementById("landMark").value;
+        if (!landMark) {
+            document.getElementById("landMarkError").textContent = "Landmark is required.";
+            isValid = false;
+        }
+
+        // State
+        const state = document.getElementById("state").value;
+        if (!textRegex.test(state)) {
+            document.getElementById("stateError").textContent = "State should contain only letters.";
+            isValid = false;
+        }
+
+        // Pincode
+        const pincode = document.getElementById("pincode").value;
+        if (!pincodeRegex.test(pincode)) {
+            document.getElementById("pincodeError").textContent = "Pincode should be a 6-digit number.";
+            isValid = false;
+        }
+
+        // Phone
+        const phone = document.getElementById("phone").value;
+        if (!phoneRegex.test(phone)) {
+            document.getElementById("phoneError").textContent = "Phone should be a 10-digit number.";
+            isValid = false;
+        }
+
+        // Alternative Phone
+        const altPhone = document.getElementById("altPhone").value;
+        if (!phoneRegex.test(altPhone)) {
+            document.getElementById("altPhoneError").textContent = "Alternative Phone should be a 10-digit number.";
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            Swal.fire({
+                title: 'Success!',
+                text: 'Address added successfully.',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                // Remove 'success' from URL to prevent repeated alerts
+                const url = new URL(window.location.href);
+                url.searchParams.delete('success');
+                window.history.replaceState(null, null, url); // Update URL without reloading
+            });
+        }
+        
+</script>
