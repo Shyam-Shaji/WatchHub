@@ -285,6 +285,7 @@ const login = async(req,res)=>{
         }
 
         req.session.user = findUser._id;
+        
         res.redirect('/');
         
     } catch (error) {

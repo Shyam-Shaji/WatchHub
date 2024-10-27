@@ -1,7 +1,21 @@
 const Address = require('../../models/addressSchema.js');
+const User  = require('../../models/userSchema.js');
+
+const loadAddAddressPage = async(req,res)=>{
+    try {
+        const user = req.session.user
+        const userData = await User.findById(user)
+
+       return res.render('addAddress',{user:userData||null});
+        
+    } catch (error) {
+        console.error('address page error',error);
+    }
+}
 
 const addAddress = async (req, res) => {
     const userId = req.session.user;
+    console.log('checking the user id is coming or not',userId);
     const { addressType, name, city, landMark, state, pincode, phone, altPhone } = req.body;
 
     if (!userId || !addressType || !name || !city || !landMark || !state || !pincode || !phone || !altPhone) {
@@ -27,5 +41,6 @@ const addAddress = async (req, res) => {
 
 
 module.exports = {
+    loadAddAddressPage,
     addAddress,
 }

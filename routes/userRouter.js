@@ -41,6 +41,7 @@ router.get('/user-profile',userController.userDashboard);
 //user profile
 
 //user address
+router.get('/loadAddressPage',addressController.loadAddAddressPage);
 router.post('/addAddress',addressController.addAddress);
 //user address
 
