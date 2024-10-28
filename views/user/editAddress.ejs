@@ -1,0 +1,59 @@
+<%- include('../partials/user/header.ejs') -%>
+
+<main class="main">
+    <section class="pt-150 pb-150">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-10 m-auto">
+                    <h2 style="font-size: 24px; font-weight: bold; color: #333; margin-bottom: 1rem;">
+                        EDIT ADDRESS
+                    </h2>
+
+                    <form id="editAddressForm" method="post" action="/editAddress/<%= address._id %>">
+                        <div class="row">
+                            <div class="form-group col-md-6">
+                                <label>Address Type</label>
+                                <input name="addressType" type="text" value="<%= address.addressType %>">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>Name</label>
+                                <input name="name" type="text" value="<%= address.name %>">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>City</label>
+                                <input name="city" type="text" value="<%= address.city %>">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>Landmark</label>
+                                <input name="landMark" type="text" value="<%= address.landMark %>">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>State</label>
+                                <input name="state" type="text" value="<%= address.state %>">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>Pincode</label>
+                                <input name="pincode" type="number" value="<%= address.pincode %>">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>Phone</label>
+                                <input name="phone" type="text" value="<%= address.phone %>">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>Alternative Phone</label>
+                                <input name="altPhone" type="text" value="<%= address.altPhone %>">
+                            </div>
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-fill-out submit" value="Submit">Update Address</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+
+
+<%- include('../partials/user/footer.ejs') -%>

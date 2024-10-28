@@ -43,6 +43,10 @@ router.get('/user-profile',userController.userDashboard);
 //user address
 router.get('/loadAddressPage',addressController.loadAddAddressPage);
 router.post('/addAddress',addressController.addAddress);
+router.get('/showAddress',addressController.showAddress);
+router.get('/editAddress/:addressId',addressController.updateAddress);
+router.post('/editAddress/:addressId',addressController.updatedAddress);
+router.delete('/deleteAddress/:addressId',addressController.deleteAddress);
 //user address
 
 module.exports = router;
