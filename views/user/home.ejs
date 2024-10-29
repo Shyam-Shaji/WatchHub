@@ -107,10 +107,11 @@
                           </div>
                           <!-- Add To Cart Button -->
                           <div class="product-action-1 show mt-3">
-                              <a aria-label="Add To Cart" class="action-btn hover-up" href="/addToCart?id=<%= products[i]._id %>">
-                                  <i class="fi-rs-shopping-bag-add"></i>
-                              </a>
-                          </div>
+                            <a aria-label="Add To Cart" class="action-btn hover-up" onclick="addToCart('<%= products[i]._id %>')">
+                                <i class="fi-rs-shopping-bag-add"></i>
+                            </a>
+                        </div>
+                        
                       </div>
                   </div>
               </div>
@@ -201,5 +202,43 @@
       </div>
     </section>
   </main>
+
+  <!-- <script>
+    async function addToCart(productId) {
+        try {
+            const response = await fetch(`/addToCart?id=${productId}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                }
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Added to Cart',
+                    text: 'Product has been successfully added to your cart.',
+                    confirmButtonText: 'Continue Shopping',
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: data.message || 'Could not add product to cart.',
+                    confirmButtonText: 'Try Again',
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Something went wrong. Please try again later.',
+                confirmButtonText: 'OK',
+            });
+        }
+    }
+</script> -->
 
 <%- include('../partials/user/footer.ejs') %>

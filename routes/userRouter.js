@@ -54,6 +54,7 @@ router.delete('/deleteAddress/:addressId',addressController.deleteAddress);
 router.get('/addToCart',cartController.addToCart);
 router.get('/cart',cartController.viewCart);
 router.post('/removeFromCart',cartController.removeCart);
+router.get('/updateQuantity',cartController.updateQuantity);
 //cart management
 
 module.exports = router;
