@@ -42,18 +42,24 @@ const addAddress = async (req, res) => {
 const showAddress = async(req,res)=>{
 
     const userId = req.session.user;
+    const user = await User.findById(userId);
 
     try {
 
         const userAddress = await Address.findOne({userId});
         const addresses = userAddress ? userAddress.address : [];
-        return res.render('address', {addresses});
+        return res.render('address', {addresses, user});
         
     } catch (error) {
         console.error(error);
         res.status(500).json({error:"Server error"});
     }
 }
+
+// const userId = req.session.user; 
+
+        
+// const user = await User.findById(userId);
 
 //edit addressPage load
 const updateAddress = async(req,res)=>{

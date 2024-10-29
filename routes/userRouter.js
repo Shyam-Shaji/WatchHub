@@ -3,6 +3,7 @@ const router = express.Router();
 const userController = require('../controllers/user/userController');
 const profileController = require('../controllers/user/profileController');
 const addressController = require('../controllers/user/addressController');
+const cartController = require('../controllers/user/cartController');
 const passport = require('passport');
 const auth = require('../middlewares/auth');
 
@@ -48,5 +49,11 @@ router.get('/editAddress/:addressId',addressController.updateAddress);
 router.post('/editAddress/:addressId',addressController.updatedAddress);
 router.delete('/deleteAddress/:addressId',addressController.deleteAddress);
 //user address
+
+//cart management
+router.get('/addToCart',cartController.addToCart);
+router.get('/cart',cartController.viewCart);
+router.post('/removeFromCart',cartController.removeCart);
+//cart management
 
 module.exports = router;
