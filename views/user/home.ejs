@@ -192,7 +192,7 @@
                   <span><%= products[i].salePrice %></span>
                   <span class="old-price">$245.8</span>
                 </div>
-                <a href="/addToCart?id=<%= products[i]._id %>">Add to Cart</a>
+                <a href="#" onclick="addToCart('<%= products[i]._id %>'); return false;">Add to Cart</a>  
               </div>
             </div>
             
@@ -203,7 +203,7 @@
     </section>
   </main>
 
-  <!-- <script>
+  <script>
     async function addToCart(productId) {
         try {
             const response = await fetch(`/addToCart?id=${productId}`, {
@@ -212,33 +212,29 @@
                     'Accept': 'application/json',
                 }
             });
-            const data = await response.json();
 
-            if (response.ok) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Added to Cart',
-                    text: 'Product has been successfully added to your cart.',
-                    confirmButtonText: 'Continue Shopping',
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: data.message || 'Could not add product to cart.',
-                    confirmButtonText: 'Try Again',
-                });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Could not add product to cart.');
             }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Added to Cart',
+                text: 'Product has been successfully added to your cart.',
+                confirmButtonText: 'Continue Shopping',
+            });
         } catch (error) {
             console.error('Error:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
-                text: 'Something went wrong. Please try again later.',
+                text: error.message || 'Something went wrong. Please try again later.',
                 confirmButtonText: 'OK',
             });
         }
     }
-</script> -->
+</script>
+
 
 <%- include('../partials/user/footer.ejs') %>

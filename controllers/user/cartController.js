@@ -1,13 +1,13 @@
 const Cart = require('../../models/cartSchema');
 const Product = require('../../models/productSchema');
 
-const addToCart = async (req, res) => { 
+const addToCart = async (req, res) => {  
     try {
         const userId = req.session.user;
         const productId = req.query.id;
         const maxQuantityPerUser = 5; // Define the max quantity allowed per user per product
 
-        if (!userId) return res.redirect('/login');
+        if (!userId) return res.status(401).json({ message: 'Please log in to add items to your cart.' });
 
         let cart = await Cart.findOne({ userId });
         if (!cart) cart = new Cart({ userId, items: [] });
@@ -21,9 +21,9 @@ const addToCart = async (req, res) => {
 
             // Ensure quantity does not exceed stock or per-user max limit
             if (currentQuantity >= product.quantity) {
-                return res.status(400).send("Reached max available stock");
+                return res.status(400).json({ message: "Reached max available stock" });
             } else if (currentQuantity >= maxQuantityPerUser) {
-                return res.status(400).send("Reached max quantity allowed per user");
+                return res.status(400).json({ message: "Reached max quantity allowed per user" });
             } else {
                 cart.items[productIndex].quantity += 1;
                 cart.items[productIndex].totalPrice = cart.items[productIndex].price * cart.items[productIndex].quantity;
@@ -31,9 +31,9 @@ const addToCart = async (req, res) => {
         } else {
             // New item: check stock and per-user limit
             if (1 > product.quantity) {
-                return res.status(400).send("Insufficient stock for this product");
+                return res.status(400).json({ message: "Insufficient stock for this product" });
             } else if (1 > maxQuantityPerUser) {
-                return res.status(400).send("Cannot add more than max quantity per user");
+                return res.status(400).json({ message: "Cannot add more than max quantity per user" });
             }
 
             cart.items.push({
@@ -45,12 +45,13 @@ const addToCart = async (req, res) => {
         }
 
         await cart.save();
-        res.redirect('/cart');
+        res.status(200).json({ message: 'Product added to cart successfully' });
     } catch (error) {
         console.error('Error adding to cart:', error);
-        res.status(500).send('Server error');
+        res.status(500).json({ message: 'Server error' });
     }
-};
+}; 
+
 
 
 
