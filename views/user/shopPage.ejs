@@ -1,0 +1,250 @@
+<%- include('../partials/user/header.ejs') -%>
+
+<!-- views/shopPage.ejs -->
+<main class="main">
+    <div class="page-header breadcrumb-wrap">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a>
+                <span></span> Shop
+                <!-- <span></span> Filters -->
+            </div>
+        </div>
+    </div>
+    <section class="mt-50 mb-50">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="shop-product-fillter">
+                        <div class="totall-product">
+                            <p> We found <strong class="text-brand"><%= products.length %></strong> items for you!</p>
+                        </div>
+                        <div class="sort-by-product-area">
+                            
+                            <div class="sort-by-cover">
+                                <div class="sort-by-product-wrap">
+                                    <div class="sort-by">
+                                        <span><i class="fi-rs-apps-sort"></i>Sort by:</span>
+                                    </div>
+                                    <div class="sort-by-dropdown-wrap">
+                                        <span> Featured <i class="fi-rs-angle-small-down"></i></span>
+                                    </div>
+                                </div>
+                                <div class="sort-by-dropdown">
+                                    <ul>
+                                        <li><a class="active" href="#" data-sort="featured">Featured</a></li>
+                                        <li><a href="#">Price: Low to High</a></li>
+                                        <li><a href="#">Price: High to Low</a></li>
+                                        <li><a href="#">New Arrivals</a></li>
+                                        <li><a href="#">aA - zZ</a></li>
+                                        <li><a href="#">zZ - aA</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row product-grid-3">
+                        <% products.forEach(product => { %>
+                            <div class="col-lg-3 col-md-4 product-item" data-is-new="<%= product.isNew ? 'true' : 'false' %>">
+                                <div class="product-cart-wrap mb-30">
+                                    <div class="product-img-action-wrap">
+                                        <div class="product-img product-img-zoom">
+                                            <a href="/productDetails/<%= product._id %>">
+                                                <img class="default-img" src="/uploads/re-image/<%= product.productImage[0] %>" alt="<%= product.productName %>">
+                                                <% if (product.productImage[1]) { %>
+                                                    <img class="hover-img" src="/uploads/re-image/<%= product.productImage[1] %>" alt="<%= product.productName %>">
+                                                <% } %>
+                                            </a>
+                                        </div>
+                                        <div class="product-action-1">
+                                            <a aria-label="Quick view" class="action-btn hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal">
+                                                <i class="fi-rs-search"></i>
+                                            </a>
+                                            <a aria-label="Add To Wishlist" class="action-btn hover-up" href="/addToWishlist?id=<%= product._id %>">
+                                                <i class="fi-rs-heart"></i>
+                                            </a>
+                                            <a aria-label="Compare" class="action-btn hover-up" href="shop-compare.html">
+                                                <i class="fi-rs-shuffle"></i>
+                                            </a>
+                                        </div>
+                                        <div class="product-badges product-badges-position product-badges-mrg">
+                                            <% if (product.isHot) { %>
+                                                <span class="hot">Hot</span>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                    <div class="product-content-wrap">
+                                        <div class="product-category">
+                                            <a href="/category/<%= product.category %>"><%= product.category %></a>
+                                        </div>
+                                        <h2><a href="/productDetails/<%= product._id %>"><%= product.productName %></a></h2>
+                                        <div class="rating-result" title="<%= product.rating %>%">
+                                            <span><%= product.rating %>%</span>
+                                        </div>
+                                        <div class="product-price">
+                                            <span>$<%= product.salePrice %></span>
+                                            <% if (product.oldPrice) { %>
+                                                <span class="old-price">$<%= product.oldPrice %></span>
+                                            <% } %>
+                                        </div>
+                                        <div class="product-action-1 show">
+                                            <a aria-label="Add To Cart" class="action-btn hover-up" href="#" onclick="addToCart('<%= product._id %>'); return false;">
+                                                <i class="fi-rs-shopping-bag-add"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>                    
+                    <!-- Pagination -->
+                    <div class="pagination-area mt-15 mb-sm-5 mb-lg-0">
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination justify-content-start">
+                                <li class="page-item active"><a class="page-link" href="#">01</a></li>
+                                <li class="page-item"><a class="page-link" href="#">02</a></li>
+                                <li class="page-item"><a class="page-link" href="#">03</a></li>
+                                <li class="page-item"><a class="page-link dot" href="#">...</a></li>
+                                <li class="page-item"><a class="page-link" href="#">16</a></li>
+                                <li class="page-item"><a class="page-link" href="#"><i class="fi-rs-angle-double-small-right"></i></a></li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>        
+</main>
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Add event listeners to sort options
+    document.querySelectorAll('.sort-by-dropdown a').forEach(option => {
+        option.addEventListener('click', function (event) {
+            event.preventDefault(); // Prevent default link behavior
+
+            const sortType = this.getAttribute('data-sort');
+
+            // Get the product items
+            const productList = document.querySelector('.product-grid-3'); // Adjust this selector if needed
+            const products = Array.from(productList.children);
+
+            let filteredProducts;
+
+            // Filtering logic for New Arrivals
+            if (sortType === 'new-arrivals') {
+                filteredProducts = products.filter(product => {
+                    return product.dataset.isNew === "true"; // Assuming you set this attribute for new arrivals
+                });
+            } else {
+                // Handle other sorting logic (for example: low to high, high to low)
+                // You can add sorting logic similar to previous examples if needed.
+            }
+
+            // Clear existing products from the product list
+            productList.innerHTML = '';
+
+            // Append filtered products back to the product list
+            (filteredProducts.length ? filteredProducts : products).forEach(product => {
+                productList.appendChild(product);
+            });
+        });
+    });
+});
+
+
+//new 
+document.addEventListener('DOMContentLoaded', function () {
+    // Add event listeners to sort options
+    document.querySelectorAll('.sort-by-dropdown a').forEach(option => {
+        option.addEventListener('click', function (event) {
+            event.preventDefault(); // Prevent default link behavior
+
+            const sortType = this.getAttribute('data-sort');
+
+            // Get the product items
+            const productList = document.querySelector('.product-grid-3'); // Adjust this selector if needed
+            const products = Array.from(productList.children);
+
+            let filteredProducts;
+
+            // Filtering logic for New Arrivals
+            if (sortType === 'new-arrivals') {
+                filteredProducts = products.filter(product => {
+                    return product.dataset.isNew === "true"; // Assuming you set this attribute for new arrivals
+                });
+            } else if (sortType === 'high-to-low') {
+                // Sort products by price: High to Low
+                filteredProducts = products.sort((a, b) => {
+                    const priceA = parseFloat(a.querySelector('.product-price span').textContent.replace('$', ''));
+                    const priceB = parseFloat(b.querySelector('.product-price span').textContent.replace('$', ''));
+                    return priceB - priceA; // Sort in descending order
+                });
+            } else {
+                // Handle other sorting logic (e.g., low to high, featured, etc.)
+                // Add other sorting options here as needed.
+            }
+
+            // Clear existing products from the product list
+            productList.innerHTML = '';
+
+            // Append filtered products back to the product list
+            (filteredProducts.length ? filteredProducts : products).forEach(product => {
+                productList.appendChild(product);
+            });
+        });
+    });
+});
+
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Add event listeners to sort options
+    document.querySelectorAll('.sort-by-dropdown a').forEach(option => {
+        option.addEventListener('click', function (event) {
+            event.preventDefault(); // Prevent default link behavior
+
+            const sortType = this.getAttribute('data-sort');
+
+            // Get the product items
+            const productList = document.querySelector('.product-grid-3'); // Adjust this selector if needed
+            const products = Array.from(productList.children);
+
+            let filteredProducts;
+
+            // Filtering logic for New Arrivals
+            if (sortType === 'new-arrivals') {
+                filteredProducts = products.filter(product => {
+                    return product.dataset.isNew === "true"; // Assuming you set this attribute for new arrivals
+                });
+            } else if (sortType === 'high-to-low') {
+                // Sort products by price: High to Low
+                filteredProducts = products.sort((a, b) => {
+                    const priceA = parseFloat(a.querySelector('.product-price span').textContent.replace('$', ''));
+                    const priceB = parseFloat(b.querySelector('.product-price span').textContent.replace('$', ''));
+                    return priceB - priceA; // Sort in descending order
+                });
+            } else {
+                // Handle other sorting logic (e.g., low to high, featured, etc.)
+                // Add other sorting options here as needed.
+            }
+
+            // Clear existing products from the product list
+            productList.innerHTML = '';
+
+            // Append filtered products back to the product list
+            (filteredProducts.length ? filteredProducts : products).forEach(product => {
+                productList.appendChild(product);
+            });
+        });
+    });
+});
+
+
+//new
+
+</script>
+
+
+<%- include('../partials/user/footer.ejs') -%>

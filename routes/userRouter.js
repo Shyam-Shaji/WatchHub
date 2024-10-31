@@ -4,6 +4,7 @@ const userController = require('../controllers/user/userController');
 const profileController = require('../controllers/user/profileController');
 const addressController = require('../controllers/user/addressController');
 const cartController = require('../controllers/user/cartController');
+const shopController = require('../controllers/user/shopController');
 const passport = require('passport');
 const auth = require('../middlewares/auth');
 
@@ -56,5 +57,9 @@ router.get('/cart',cartController.viewCart);
 router.post('/removeFromCart',cartController.removeCart);
 router.get('/updateQuantity',cartController.updateQuantity);
 //cart management
+
+//Shop controller
+router.get('/loadShopPage',shopController.loadShopPage);
+//Shop controller
 
 module.exports = router;
