@@ -117,6 +117,39 @@
 
 <script>
 
+    //add to cart
+    async function addToCart(productId) {
+        try {
+            const response = await fetch(`/addToCart?id=${productId}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Could not add product to cart.');
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Added to Cart',
+                text: 'Product has been successfully added to your cart.',
+                confirmButtonText: 'Continue Shopping',
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: error.message || 'Something went wrong. Please try again later.',
+                confirmButtonText: 'OK',
+            });
+        }
+    }
+    //add to cart
+
 document.addEventListener('DOMContentLoaded', function () {
     // Add event listeners to sort options
     document.querySelectorAll('.sort-by-dropdown a').forEach(option => {

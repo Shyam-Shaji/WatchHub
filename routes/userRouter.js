@@ -5,6 +5,7 @@ const profileController = require('../controllers/user/profileController');
 const addressController = require('../controllers/user/addressController');
 const cartController = require('../controllers/user/cartController');
 const shopController = require('../controllers/user/shopController');
+const checkoutController = require('../controllers/user/checkoutController');
 const passport = require('passport');
 const auth = require('../middlewares/auth');
 
@@ -53,6 +54,7 @@ router.delete('/deleteAddress/:addressId',addressController.deleteAddress);
 
 //cart management
 router.get('/addToCart',cartController.addToCart);
+// router.post('/addToCart',cartController.addToCart);
 router.get('/cart',cartController.viewCart);
 router.post('/removeFromCart',cartController.removeCart);
 router.get('/updateQuantity',cartController.updateQuantity);
@@ -61,5 +63,9 @@ router.get('/updateQuantity',cartController.updateQuantity);
 //Shop controller
 router.get('/loadShopPage',shopController.loadShopPage);
 //Shop controller
+
+//checkout
+router.get('/checkoutPage',checkoutController.checkoutPage);
+//checkout
 
 module.exports = router;

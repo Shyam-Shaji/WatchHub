@@ -55,22 +55,36 @@ const addToCart = async (req, res) => {
 
 
 
-const viewCart = async(req,res)=>{
+const viewCart = async (req, res) => { 
     try {
-
         const userId = req.session.user;
-        if(!userId){
+        if (!userId) {
             return res.redirect('/login');
         }
 
-        const cart = await Cart.findOne({userId}).populate('items.productId');
-        res.render('cart',{cart});
+        const cart = await Cart.findOne({ userId }).populate('items.productId');
+
+        if (!cart || cart.items.length === 0) {
+            return res.render('cart', { cart, subtotal: 0, shipping: 0, total: 0 });
+        }
+
+        // Calculate subtotal
+        const subtotal = cart.items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+        
+        // Define shipping cost (flat rate for example)
+        const shipping = subtotal > 0 ? 5 : 0; // Assuming flat rate shipping if subtotal is > 0
+
+        // Calculate total
+        const total = subtotal + shipping;
+
+        res.render('cart', { cart, subtotal, shipping, total });
         
     } catch (error) {
-        console.error('Error loading cart',error);
+        console.error('Error loading cart', error);
         res.status(500).send('Server error');
     }
 };
+
 
 const removeCart = async (req, res) => {
     try {

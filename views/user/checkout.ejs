@@ -1,0 +1,184 @@
+<%- include('../partials/user/header.ejs') -%>
+
+<main class="main">
+    <div class="page-header breadcrumb-wrap">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="index.html" rel="nofollow">Home</a>
+                <span></span> Shop
+                <span></span> Checkout
+            </div>
+        </div>
+    </div>
+    <section class="mt-50 mb-50">
+        <div class="container">
+            <!-- Login and Coupon Section -->
+            <div class="row">
+                <div class="col-lg-6 mb-sm-15">
+                    <div class="toggle_info">
+                        <span><i class="fi-rs-user mr-10"></i><span class="text-muted">Already have an account?</span>
+                            <a href="#loginform" data-bs-toggle="collapse" class="collapsed" aria-expanded="false">Click here to login</a></span>
+                    </div>
+                    <div class="panel-collapse collapse login_form" id="loginform">
+                        <div class="panel-body">
+                            <form method="post">
+                                <div class="form-group">
+                                    <input type="text" name="email" placeholder="Username Or Email">
+                                </div>
+                                <div class="form-group">
+                                    <input type="password" name="password" placeholder="Password">
+                                </div>
+                                <div class="login_footer form-group">
+                                    <div class="custome-checkbox">
+                                        <input class="form-check-input" type="checkbox" name="checkbox" id="remember">
+                                        <label class="form-check-label" for="remember"><span>Remember me</span></label>
+                                    </div>
+                                    <a href="#">Forgot password?</a>
+                                </div>
+                                <button class="btn btn-md" name="login">Log in</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="toggle_info">
+                        <span><i class="fi-rs-label mr-10"></i><span class="text-muted">Have a coupon?</span>
+                            <a href="#coupon" data-bs-toggle="collapse" class="collapsed" aria-expanded="false">Click here to enter your code</a></span>
+                    </div>
+                    <div class="panel-collapse collapse coupon_form" id="coupon">
+                        <div class="panel-body">
+                            <form method="post">
+                                <div class="form-group">
+                                    <input type="text" placeholder="Enter Coupon Code...">
+                                </div>
+                                <button class="btn btn-md" name="applyCoupon">Apply Coupon</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Divider -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="divider mt-50 mb-50"></div>
+                </div>
+            </div>
+    
+            <!-- Billing and Shipping Details -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-25">
+                        <h4>Billing Details</h4>
+                    </div>
+                    <form method="post">
+                        <div class="form-group">
+                            <input type="text" required name="fname" placeholder="First name *">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" required name="lname" placeholder="Last name *">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="companyName" placeholder="Company Name">
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control select-active" required>
+                                <option value="">Select Country...</option>
+                                <option value="AX">Aland Islands</option>
+                                <option value="AF">Afghanistan</option>
+                                <option value="AL">Albania</option>
+                                <option value="DZ">Algeria</option>
+                                <option value="AD">Andorra</option>
+                                <!-- Add country options here -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="address" required placeholder="Address *">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="address2" placeholder="Address Line 2">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="city" required placeholder="City / Town *">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="state" required placeholder="State / County *">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="zipcode" required placeholder="Postcode / ZIP *">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="phone" required placeholder="Phone *">
+                        </div>
+                        <div class="form-group">
+                            <input type="email" name="email" required placeholder="Email Address *">
+                        </div>
+                    </form>
+                </div>
+    
+                <!-- Order Review and Payment Section -->
+                <div class="col-md-6">
+                    <div class="order_review">
+                        <div class="mb-20">
+                            <h4>Your Orders</h4>
+                        </div>
+                        <div class="table-responsive order_table text-center">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th colspan="2">Product</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% cartItems.forEach(item => { %>
+                                        <tr>
+                                            <td class="image product-thumbnail"><img src="<%= item.productImage %>" alt="<%= item.productName %>" width="100"></td>
+                                            <td>
+                                                <h5><%= item.productName %></h5>
+                                                <span class="product-qty">x <%= item.quantity %></span>
+                                            </td>
+                                            <td>$<%= item.totalPrice %></td>
+                                        </tr>
+                                    <% }) %>
+                                    <tr>
+                                        <th>SubTotal</th>
+                                        <td colspan="2" class="product-subtotal">$<%= totalAmount %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Shipping</th>
+                                        <td colspan="2"><em>Free Shipping</em></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Total</th>
+                                        <td colspan="2" class="product-subtotal"><span class="font-xl text-brand fw-900">$<%= totalAmount %></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="payment_method mt-30">
+                            <h5>Payment</h5>
+                            <div class="payment_option">
+                                <div class="custome-radio">
+                                    <input class="form-check-input" type="radio" name="payment_option" id="bank_transfer" required>
+                                    <label class="form-check-label" for="bank_transfer">Bank Transfer</label>
+                                </div>
+                                <div class="custome-radio">
+                                    <input class="form-check-input" type="radio" name="payment_option" id="cash_on_delivery" required>
+                                    <label class="form-check-label" for="cash_on_delivery">Cash on Delivery</label>
+                                </div>
+                                <div class="custome-radio">
+                                    <input class="form-check-input" type="radio" name="payment_option" id="credit_card" required>
+                                    <label class="form-check-label" for="credit_card">Credit Card</label>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-fill-out btn-block mt-30">Place Order</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<%- include('../partials/user/footer.ejs') -%>
