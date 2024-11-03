@@ -1,5 +1,11 @@
 <%- include('../partials/user/header.ejs') %>
 
+<style>
+    .error {
+        color: red;
+    }
+</style>
+
 <main class="main">
     <section class="pt-150 pb-150">
         <div class="container">
@@ -74,10 +80,10 @@
     function validateForm() {
         let isValid = true;
 
-        // Clear previous error messages
+       
         document.querySelectorAll('.error').forEach(el => el.innerText = '');
 
-        // Get form inputs
+        
         const addressType = document.getElementById('addressType').value.trim();
         const name = document.getElementById('name').value.trim();
         const city = document.getElementById('city').value.trim();
@@ -87,7 +93,7 @@
         const phone = document.getElementById('phone').value.trim();
         const altPhone = document.getElementById('altPhone').value.trim();
 
-        // Validation for required fields
+        
         if (addressType === "") {
             document.getElementById('addressTypeError').innerText = 'Address type is required';
             isValid = false;
@@ -121,7 +127,7 @@
             isValid = false;
         }
 
-        return isValid; // If all validations pass, return true
+        return isValid; 
     }
 </script>
 

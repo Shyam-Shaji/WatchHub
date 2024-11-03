@@ -1,5 +1,11 @@
 <%- include('../partials/user/header.ejs') -%>
 
+<style>
+    .error {
+        color: red;
+    }
+</style>
+
 <main class="main">
     <section class="pt-150 pb-150">
         <div class="container">
@@ -9,39 +15,47 @@
                         EDIT ADDRESS
                     </h2>
 
-                    <form id="editAddressForm" method="post" action="/editAddress/<%= address._id %>">
+                    <form id="editAddressForm" method="post" action="/editAddress/<%= address._id %>" onsubmit="return validateEditForm()">
                         <div class="row">
                             <div class="form-group col-md-6">
                                 <label>Address Type</label>
                                 <input name="addressType" type="text" value="<%= address.addressType %>">
+                                <small id="addressTypeError" class="error"></small>
                             </div>
                             <div class="form-group col-md-6">
                                 <label>Name</label>
                                 <input name="name" type="text" value="<%= address.name %>">
+                                <small id="nameError" class="error"></small>
                             </div>
                             <div class="form-group col-md-6">
                                 <label>City</label>
                                 <input name="city" type="text" value="<%= address.city %>">
+                                <small id="cityError" class="error"></small>
                             </div>
                             <div class="form-group col-md-6">
                                 <label>Landmark</label>
                                 <input name="landMark" type="text" value="<%= address.landMark %>">
+                                <small id="landMarkError" class="error"></small>
                             </div>
                             <div class="form-group col-md-6">
                                 <label>State</label>
                                 <input name="state" type="text" value="<%= address.state %>">
+                                <small id="stateError" class="error"></small>
                             </div>
                             <div class="form-group col-md-6">
                                 <label>Pincode</label>
                                 <input name="pincode" type="number" value="<%= address.pincode %>">
+                                <small id="pincodeError" class="error"></small>
                             </div>
                             <div class="form-group col-md-6">
                                 <label>Phone</label>
                                 <input name="phone" type="text" value="<%= address.phone %>">
+                                <small id="phoneError" class="error"></small>
                             </div>
                             <div class="form-group col-md-6">
                                 <label>Alternative Phone</label>
                                 <input name="altPhone" type="text" value="<%= address.altPhone %>">
+                                <small id="altPhoneError" class="error"></small>
                             </div>
                             <div class="col-md-12">
                                 <button type="submit" class="btn btn-fill-out submit" value="Submit">Update Address</button>
@@ -53,6 +67,81 @@
         </div>
     </section>
 </main>
+
+
+<script>
+    function validateEditForm() {
+        let isValid = true;
+
+        // Clear all previous error messages
+        document.querySelectorAll('.error').forEach(el => el.innerText = '');
+
+        // Get form input values
+        const addressType = document.querySelector('input[name="addressType"]').value.trim();
+        const name = document.querySelector('input[name="name"]').value.trim();
+        const city = document.querySelector('input[name="city"]').value.trim();
+        const landMark = document.querySelector('input[name="landMark"]').value.trim();
+        const state = document.querySelector('input[name="state"]').value.trim();
+        const pincode = document.querySelector('input[name="pincode"]').value.trim();
+        const phone = document.querySelector('input[name="phone"]').value.trim();
+        const altPhone = document.querySelector('input[name="altPhone"]').value.trim();
+
+        // Validate Address Type
+        if (addressType === "") {
+            document.getElementById('addressTypeError').innerText = 'Address type is required';
+            isValid = false;
+        }
+        
+        // Validate Name
+        if (name === "") {
+            document.getElementById('nameError').innerText = 'Name is required';
+            isValid = false;
+        }
+
+        // Validate City
+        if (city === "") {
+            document.getElementById('cityError').innerText = 'City is required';
+            isValid = false;
+        }
+
+        // Validate Landmark
+        if (landMark === "") {
+            document.getElementById('landMarkError').innerText = 'Landmark is required';
+            isValid = false;
+        }
+
+        // Validate State
+        if (state === "") {
+            document.getElementById('stateError').innerText = 'State is required';
+            isValid = false;
+        }
+
+        // Validate Pincode
+        if (pincode === "" || !/^\d{6}$/.test(pincode)) {
+            document.getElementById('pincodeError').innerText = 'Valid pincode is required (6 digits)';
+            isValid = false;
+        }
+
+        // Validate Phone
+        if (phone === "" || !/^\d{10}$/.test(phone)) {
+            document.getElementById('phoneError').innerText = 'Valid phone number is required (10 digits)';
+            isValid = false;
+        }
+
+        // Validate Alternative Phone (optional)
+        if (altPhone !== "" && !/^\d{10}$/.test(altPhone)) {
+            document.getElementById('altPhoneError').innerText = 'Alternative phone number must be 10 digits';
+            isValid = false;
+        }
+
+        return isValid; // Prevent form submission if false
+    }
+
+    // Attach validation function to form submit event
+    document.getElementById("editAddressForm").onsubmit = validateEditForm;
+</script>
+
+    
 
 
 

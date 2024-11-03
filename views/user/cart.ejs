@@ -200,12 +200,12 @@ document.querySelectorAll('.qty-up, .qty-down').forEach(button => {
     button.addEventListener('click', async (event) => {
         event.preventDefault();
 
-        // Get the productId from the data attribute of the closest <tr>
+       
         const productId = event.target.closest('tr').dataset.productId; 
         const action = event.target.classList.contains('qty-up') ? 'increase' : 'decrease';
 
         try {
-            // Fetch the updated quantity and subtotal from the server
+           
             const response = await fetch(`/updateQuantity?productId=${productId}&action=${action}`);
 
             if (!response.ok) {
@@ -215,19 +215,19 @@ document.querySelectorAll('.qty-up, .qty-down').forEach(button => {
             const data = await response.json();
 
             if (data.success) {
-                // Update the displayed quantity
+                
                 const qtyValElement = document.querySelector(`.qty-val[data-product-id="${productId}"]`);
                 if (qtyValElement) {
-                    qtyValElement.textContent = data.newQuantity; // Update the quantity displayed
+                    qtyValElement.textContent = data.newQuantity; 
                 }
 
-                // Update the subtotal price display based on the new quantity
+               
                 const subtotalElement = document.querySelector(`#subtotal-${productId}`);
                 if (subtotalElement) {
-                    subtotalElement.textContent = `$${data.newSubtotal.toFixed(2)}`; // Update subtotal
+                    subtotalElement.textContent = `$${data.newSubtotal.toFixed(2)}`; 
                 }
             } else {
-                // SweetAlert for quantity limit errors
+                
                 Swal.fire({
                     icon: 'warning',
                     title: 'Quantity Limit',
@@ -237,7 +237,7 @@ document.querySelectorAll('.qty-up, .qty-down').forEach(button => {
             }
         } catch (error) {
             console.error("There was a problem with the fetch operation:", error);
-            // SweetAlert for network or other fetch errors
+           
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -252,9 +252,9 @@ document.querySelectorAll('.qty-up, .qty-down').forEach(button => {
 
 document.querySelectorAll('.remove-cart').forEach(button => {
     button.addEventListener('click', async (event) => {
-        const productId = button.dataset.productId; // Get product ID from data attribute
+        const productId = button.dataset.productId; 
 
-        // Show SweetAlert confirmation modal
+        
         const result = await Swal.fire({
             title: 'Are you sure?',
             text: "You won't be able to revert this!",
@@ -265,7 +265,7 @@ document.querySelectorAll('.remove-cart').forEach(button => {
             confirmButtonText: 'Yes, remove it!'
         });
 
-        // Check if the user confirmed the deletion
+        
         if (result.isConfirmed) {
             try {
                 const response = await fetch('/removeFromCart', {
@@ -279,8 +279,8 @@ document.querySelectorAll('.remove-cart').forEach(button => {
                 const data = await response.json();
 
                 if (data.success) {
-                    // Remove item from DOM and show success message
-                    event.target.closest('tr').remove(); // Removes the row from the cart table
+                   
+                    event.target.closest('tr').remove(); 
                     Swal.fire({
                         icon: 'success',
                         title: 'Removed!',
