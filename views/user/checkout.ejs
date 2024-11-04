@@ -133,7 +133,7 @@
                                 <tbody>
                                     <% cartItems.forEach(item => { %>
                                         <tr>
-                                            <td class="image product-thumbnail"><img src="<%= item.productImage %>" alt="<%= item.productName %>" width="100"></td>
+                                            <td class="image product-thumbnail"><img src="/uploads/re-image/<%= item.productImage %>" alt="<%= item.productName %>" width="100"></td>
                                             <td>
                                                 <h5><%= item.productName %></h5>
                                                 <span class="product-qty">x <%= item.quantity %></span>

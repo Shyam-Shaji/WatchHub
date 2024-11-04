@@ -64,6 +64,8 @@ const viewCart = async (req, res) => {
 
         const cart = await Cart.findOne({ userId }).populate('items.productId');
 
+        console.log('checking image: ',cart);
+
         if (!cart || cart.items.length === 0) {
             return res.render('cart', { cart, subtotal: 0, shipping: 0, total: 0 });
         }
@@ -77,7 +79,7 @@ const viewCart = async (req, res) => {
         // Calculate total
         const total = subtotal + shipping;
 
-        res.render('cart', { cart, subtotal, shipping, total });
+        res.render('cart', { cart, subtotal, shipping, total,  });
         
     } catch (error) {
         console.error('Error loading cart', error);

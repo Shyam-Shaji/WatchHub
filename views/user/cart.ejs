@@ -32,7 +32,7 @@
                                         <tr data-product-id="<%= item.productId._id %>">
                                             <!-- Product Image -->
                                             <td class="image product-thumbnail">
-                                                <img src="<%= item.productId.imageUrl %>" alt="<%= item.productId.productName %>">
+                                                <img src="/uploads/re-image/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>">
                                             </td>                                            
                                             <!-- Product Name and Description -->
                                             <td class="product-des product-name">
@@ -41,7 +41,7 @@
                                                         <%= item.productId.productName %>
                                                     </a>
                                                 </h5>
-                                                <p class="font-xs"><%= item.productId.description %></p>
+                                                <!-- para -->
                                             </td>
                                             <!-- Price -->
                                             <td class="price" data-title="Price">
