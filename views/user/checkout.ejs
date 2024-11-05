@@ -3,13 +3,14 @@
 <main class="main">
     <div class="page-header breadcrumb-wrap">
         <div class="container">
-            <div class="breadcrumb">
+            <nav class="breadcrumb">
                 <a href="index.html" rel="nofollow">Home</a>
                 <span></span> Shop
                 <span></span> Checkout
-            </div>
+            </nav>
         </div>
     </div>
+
     <section class="mt-50 mb-50">
         <div class="container">
             <!-- Login and Coupon Section -->
@@ -19,103 +20,81 @@
                         <span><i class="fi-rs-user mr-10"></i><span class="text-muted">Already have an account?</span>
                             <a href="#loginform" data-bs-toggle="collapse" class="collapsed" aria-expanded="false">Click here to login</a></span>
                     </div>
-                    <div class="panel-collapse collapse login_form" id="loginform">
-                        <div class="panel-body">
-                            <form method="post">
-                                <div class="form-group">
-                                    <input type="text" name="email" placeholder="Username Or Email">
+                    <div class="collapse login_form" id="loginform">
+                        <form method="post">
+                            <div class="form-group">
+                                <input type="text" name="email" placeholder="Username or Email" aria-label="Username or Email">
+                            </div>
+                            <div class="form-group">
+                                <input type="password" name="password" placeholder="Password" aria-label="Password">
+                            </div>
+                            <div class="login_footer form-group d-flex justify-content-between">
+                                <div class="custome-checkbox">
+                                    <input class="form-check-input" type="checkbox" name="checkbox" id="remember">
+                                    <label class="form-check-label" for="remember">Remember me</label>
                                 </div>
-                                <div class="form-group">
-                                    <input type="password" name="password" placeholder="Password">
-                                </div>
-                                <div class="login_footer form-group">
-                                    <div class="custome-checkbox">
-                                        <input class="form-check-input" type="checkbox" name="checkbox" id="remember">
-                                        <label class="form-check-label" for="remember"><span>Remember me</span></label>
-                                    </div>
-                                    <a href="#">Forgot password?</a>
-                                </div>
-                                <button class="btn btn-md" name="login">Log in</button>
-                            </form>
-                        </div>
+                                <a href="#">Forgot password?</a>
+                            </div>
+                            <button class="btn btn-md" name="login">Log in</button>
+                        </form>
                     </div>
                 </div>
+
                 <div class="col-lg-6">
                     <div class="toggle_info">
                         <span><i class="fi-rs-label mr-10"></i><span class="text-muted">Have a coupon?</span>
                             <a href="#coupon" data-bs-toggle="collapse" class="collapsed" aria-expanded="false">Click here to enter your code</a></span>
                     </div>
-                    <div class="panel-collapse collapse coupon_form" id="coupon">
-                        <div class="panel-body">
-                            <form method="post">
-                                <div class="form-group">
-                                    <input type="text" placeholder="Enter Coupon Code...">
-                                </div>
-                                <button class="btn btn-md" name="applyCoupon">Apply Coupon</button>
-                            </form>
-                        </div>
+                    <div class="collapse coupon_form" id="coupon">
+                        <form method="post">
+                            <div class="form-group">
+                                <input type="text" placeholder="Enter Coupon Code..." aria-label="Coupon Code">
+                            </div>
+                            <button class="btn btn-md" name="applyCoupon">Apply Coupon</button>
+                        </form>
                     </div>
                 </div>
             </div>
-    
+
             <!-- Divider -->
             <div class="row">
                 <div class="col-12">
-                    <div class="divider mt-50 mb-50"></div>
+                    <hr class="mt-50 mb-50">
                 </div>
             </div>
-    
+
             <!-- Billing and Shipping Details -->
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-25">
                         <h4>Billing Details</h4>
                     </div>
-                    <form method="post">
-                        <div class="form-group">
-                            <input type="text" required name="fname" placeholder="First name *">
+
+                    <!-- Address Selection -->
+                    <% if (addressList.length === 0) { %>
+                        <p>No saved billing addresses found.</p>
+                        <a href="/add-address" class="btn btn-primary">Add Address</a>
+                    <% } else { %>
+                        <div class="address-list">
+                            <h5>Select Billing Address</h5>
+                            <% addressList.forEach((address, index) => { %>
+                                <div class="form-check mb-3">
+                                    <input type="radio" class="form-check-input" name="selectedAddress" id="address-<%= index %>" value="<%= address._id %>" required>
+                                    <label class="form-check-label" for="address-<%= index %>">
+                                        <strong><%= address.addressType %></strong><br>
+                                        <%= address.name %><br>
+                                        <%= address.address %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %><br>
+                                        Phone: <%= address.phone %><br>
+                                        <% if (address.altPhone) { %>
+                                            Alt Phone: <%= address.altPhone %><br>
+                                        <% } %>
+                                    </label>
+                                </div>
+                            <% }) %>
                         </div>
-                        <div class="form-group">
-                            <input type="text" required name="lname" placeholder="Last name *">
-                        </div>
-                        <div class="form-group">
-                            <input type="text" name="companyName" placeholder="Company Name">
-                        </div>
-                        <div class="form-group">
-                            <select class="form-control select-active" required>
-                                <option value="">Select Country...</option>
-                                <option value="AX">Aland Islands</option>
-                                <option value="AF">Afghanistan</option>
-                                <option value="AL">Albania</option>
-                                <option value="DZ">Algeria</option>
-                                <option value="AD">Andorra</option>
-                                <!-- Add country options here -->
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <input type="text" name="address" required placeholder="Address *">
-                        </div>
-                        <div class="form-group">
-                            <input type="text" name="address2" placeholder="Address Line 2">
-                        </div>
-                        <div class="form-group">
-                            <input type="text" name="city" required placeholder="City / Town *">
-                        </div>
-                        <div class="form-group">
-                            <input type="text" name="state" required placeholder="State / County *">
-                        </div>
-                        <div class="form-group">
-                            <input type="text" name="zipcode" required placeholder="Postcode / ZIP *">
-                        </div>
-                        <div class="form-group">
-                            <input type="text" name="phone" required placeholder="Phone *">
-                        </div>
-                        <div class="form-group">
-                            <input type="email" name="email" required placeholder="Email Address *">
-                        </div>
-                    </form>
+                    <% } %>
                 </div>
-    
+
                 <!-- Order Review and Payment Section -->
                 <div class="col-md-6">
                     <div class="order_review">
@@ -143,7 +122,7 @@
                                     <% }) %>
                                     <tr>
                                         <th>SubTotal</th>
-                                        <td colspan="2" class="product-subtotal">$<%= totalAmount %></td>
+                                        <td colspan="2">$<%= totalAmount %></td>
                                     </tr>
                                     <tr>
                                         <th>Shipping</th>
@@ -151,34 +130,101 @@
                                     </tr>
                                     <tr>
                                         <th>Total</th>
-                                        <td colspan="2" class="product-subtotal"><span class="font-xl text-brand fw-900">$<%= totalAmount %></span></td>
+                                        <td colspan="2"><span class="font-xl text-brand fw-900">$<%= totalAmount %></span></td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
+
+                        <!-- Payment Method Selection -->
                         <div class="payment_method mt-30">
                             <h5>Payment</h5>
                             <div class="payment_option">
                                 <div class="custome-radio">
-                                    <input class="form-check-input" type="radio" name="payment_option" id="bank_transfer" required>
-                                    <label class="form-check-label" for="bank_transfer">Bank Transfer</label>
+                                    <input type="radio" class="form-check-input" name="payment_option" id="bank_transfer" required>
+                                    <label class="form-check-label" for="bank_transfer">Razor Pay</label>
                                 </div>
                                 <div class="custome-radio">
-                                    <input class="form-check-input" type="radio" name="payment_option" id="cash_on_delivery" required>
+                                    <input type="radio" class="form-check-input" name="payment_option" id="cash_on_delivery" required>
                                     <label class="form-check-label" for="cash_on_delivery">Cash on Delivery</label>
                                 </div>
                                 <div class="custome-radio">
-                                    <input class="form-check-input" type="radio" name="payment_option" id="credit_card" required>
-                                    <label class="form-check-label" for="credit_card">Credit Card</label>
+                                    <input type="radio" class="form-check-input" name="payment_option" id="credit_card" required>
+                                    <label class="form-check-label" for="credit_card">Wallet</label>
                                 </div>
                             </div>
                         </div>
+
                         <button class="btn btn-fill-out btn-block mt-30">Place Order</button>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+    <!-- Order Confirmation Modal -->
+<div class="modal fade" id="orderConfirmationModal" tabindex="-1" aria-labelledby="orderConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderConfirmationModalLabel">Order Placed Successfully</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Thank you for your order! Your order has been placed and is being processed.
+            </div>
+            <div class="modal-footer">
+                <a href="/orders" class="btn btn-primary">View Orders</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 </main>
+
+
+<script>
+    document.querySelector(".btn-fill-out").addEventListener("click", async function(event) {
+        event.preventDefault(); // Prevent traditional form submission
+        
+        // Get selected address and payment option
+        const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked');
+        const paymentOption = document.querySelector('input[name="payment_option"]:checked');
+
+        // Validate selections
+        if (!selectedAddress || !paymentOption) {
+            alert('Please select both an address and a payment method.');
+            return;
+        }
+
+        try {
+            // AJAX request to place the order
+            const response = await fetch('/place-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    selectedAddress: selectedAddress.value,
+                    payment_option: paymentOption.id
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Show the confirmation modal on successful order placement
+                $('#orderConfirmationModal').modal('show');
+            } else {
+                alert('Failed to place the order: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error placing order:', error);
+            alert('There was an error placing your order. Please try again.');
+        }
+    });
+</script>
+
+
 
 <%- include('../partials/user/footer.ejs') -%>

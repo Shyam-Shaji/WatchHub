@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/user/userController');
 const profileController = require('../controllers/user/profileController');
+const orderController = require('../controllers/user/orderController');
 const addressController = require('../controllers/user/addressController');
 const cartController = require('../controllers/user/cartController');
 const shopController = require('../controllers/user/shopController');
@@ -64,8 +65,13 @@ router.get('/updateQuantity',cartController.updateQuantity);
 router.get('/loadShopPage',shopController.loadShopPage);
 //Shop controller
 
+//order
+router.get('/orders', orderController.viewOrder);
+//order
+
 //checkout
 router.get('/checkoutPage',checkoutController.checkoutPage);
+router.post('/place-order',checkoutController.placeOrder);
 //checkout
 
 module.exports = router;
