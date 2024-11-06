@@ -67,6 +67,7 @@ router.get('/loadShopPage',shopController.loadShopPage);
 
 //order
 router.get('/orders', orderController.viewOrder);
+router.post('/cancel-order/:orderId',orderController.orderCancell);
 //order
 
 //checkout

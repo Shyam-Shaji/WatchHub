@@ -1,6 +1,14 @@
 <%- include('../partials/user/header.ejs') %>
 
 <main class="main">
+    <div class="page-header breadcrumb-wrap">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="index.html" rel="nofollow">Home</a>
+                <span></span> Account
+            </div>
+        </div>
+    </div>
     <section class="pt-150 pb-150">
         <div class="container">
             <div class="row">
@@ -9,31 +17,70 @@
                         <%- include('../partials/user/sidebar.ejs') %>
                     </div>
                     <div class="card-body">
-                       
+                        <% if (orders && orders.length > 0) { %>
+                            <% orders.forEach(order => { %>
+                                <div class="table-responsive mb-4" id="order-<%= order.orderId %>">
+                                    <h5>Order ID: <%= order.orderId %></h5>
+                                    <p>Order Date: <%= order.orderDate.toDateString() %></p>
+                                    <p id="status-<%= order.orderId %>">Status: <%= order.status %></p>
 
-                        <% if (order) { %>
-                            <div class="table-responsive">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Product</th>
-                                            <th>Quantity</th>
-                                            <th>Price</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <% order.items.forEach(item => { %>
+                                    <!-- Display Address Information -->
+                                    <table class="table">
+                                        <thead>
                                             <tr>
-                                                <td><%= item.name %></td>
-                                                <td><%= item.quantity %></td>
-                                                <td>$<%= item.price %></td>
+                                                <th colspan="4">Shipping Address</th>
                                             </tr>
-                                        <% }) %>
-                                    </tbody>
-                                </table>
-                            </div>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>Name:</strong> <%= order.address.name %></td>
+                                                <td><strong>City:</strong> <%= order.address.city %></td>
+                                                <td><strong>State:</strong> <%= order.address.state %></td>
+                                                <td><strong>ZIP Code:</strong> <%= order.address.pincode %></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Phone:</strong> <%= order.address.phone %></td>
+                                                <td><strong>Alt Phone:</strong> <%= order.address.altPhone %></td>
+                                                <td colspan="2"><strong>Landmark:</strong> <%= order.address.landMark %></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
 
-                         
+                                    <!-- Order Items Table -->
+                                    <table class="table mt-3">
+                                        <thead>
+                                            <tr>
+                                                <th>Product</th>
+                                                <th>Quantity</th>
+                                                <th>Price</th>
+                                                <th>Total Price</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% order.items.forEach(item => { %>
+                                                <tr>
+                                                    <td><%= item.product ? item.product.name : 'Product not found' %></td>
+                                                    <td><%= item.quantity %></td>
+                                                    <td>$<%= item.price %></td>
+                                                    <td>$<%= item.totalPrice %></td>
+                                                </tr>
+                                            <% }) %>
+                                        </tbody>
+                                    </table>
+                                    <p><strong>Total Amount:</strong> $<%= order.totalAmount %></p>
+
+                                    <!-- Order Cancel Button -->
+                                    <% if (order.status !== 'Cancelled') { %>
+                                        <button class="btn btn-danger mt-3" onclick="cancelOrder('<%= order.orderId %>')">
+                                            Cancel Order
+                                        </button>
+                                    <% } else { %>
+                                        <p class="text-danger"><strong>Order has been cancelled.</strong></p>
+                                    <% } %>
+                                    
+                                    <hr>
+                                </div>
+                            <% }) %>
                         <% } else { %>
                             <p>No order details available.</p>
                         <% } %>
@@ -44,5 +91,59 @@
     </section>
 </main>
 
+<script>
+    // JavaScript function to handle order cancellation
+    // JavaScript function to handle order cancellation with SweetAlert
+function cancelOrder(orderId) {
+    // Show confirmation dialog
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "Do you really want to cancel this order?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, cancel it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // If confirmed, send the cancellation request
+            fetch(`/cancel-order/${orderId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update status text in the DOM
+                    document.getElementById(`status-${orderId}`).innerText = 'Status: Cancelled';
+                    
+                    // Show success alert
+                    Swal.fire(
+                        'Cancelled!',
+                        'Your order has been cancelled successfully.',
+                        'success'
+                    );
+                } else {
+                    // Show error alert
+                    Swal.fire(
+                        'Failed!',
+                        'Failed to cancel the order.',
+                        'error'
+                    );
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire(
+                    'Error!',
+                    'An error occurred while cancelling the order.',
+                    'error'
+                );
+            });
+        }
+    });
+}
 
-<%- include('../partials/user/footer.ejs') %>
+</script>
+
+<%- include('../partials/user/footer.ejs') %>  

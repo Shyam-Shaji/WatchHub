@@ -13,10 +13,15 @@ const orderSchema = new Schema({
         ref: 'User',
         required: true,
     },
-    addressId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Address',
-        required: true,
+    address: {
+        addressType: String,
+        name: String,
+        city: String,
+        landMark: String,
+        state: String,
+        pincode: Number,
+        phone: String,
+        altPhone: String,
     },
     paymentMethod: {
         type: String,

@@ -59,47 +59,110 @@ const checkoutPage = async (req, res) => {
     }
 };
 
+// const placeOrder = async (req, res) => {
+//     const { selectedAddress, payment_option } = req.body;
+//     const userId = req.session.user;
+//     const cartItems = req.session.cartItems; // Get cart items from session
+//     const totalAmount = req.session.totalAmount; // Get total amount from session
+
+//     if (!cartItems || cartItems.length === 0) {
+//         return res.status(400).json({ success: false, message: 'Cart is empty' });
+//     }
+
+//     try {
+//         // Map the payment_option to match schema enum values
+//         const paymentMethod = payment_option === 'cash_on_delivery' ? 'Cash on Delivery' :
+//                              payment_option === 'razor_pay' ? 'Razor Pay' : 'Wallet';
+
+//         // Create and save the order in the database
+//         const order = new Order({
+//             userId,
+//             addressId: selectedAddress,
+//             paymentMethod,
+//             items: cartItems.map(item => ({
+//                 product: item.productId, 
+//                 quantity: item.quantity,
+//                 price: item.price,
+//                 totalPrice: item.totalPrice
+//             })),
+//             totalAmount,
+//             status: paymentMethod === 'Cash on Delivery' ? 'Pending' : 'Processing', 
+//             orderDate: new Date()
+//         });
+
+//         await order.save();
+
+//         // Clear the cart or update it as needed
+//         await Cart.findOneAndUpdate({ userId }, { items: [] });
+
+//         // Respond with success message
+//         res.json({ success: true });
+//     } catch (error) {
+//         console.error('Error placing order:', error);
+//         res.status(500).json({ success: false, message: 'Order placement failed', error: error.message });
+//     }
+// };
+
 const placeOrder = async (req, res) => {
     const { selectedAddress, payment_option } = req.body;
     const userId = req.session.user;
-    const cartItems = req.session.cartItems; // Get cart items from session
-    const totalAmount = req.session.totalAmount; // Get total amount from session
+    const cartItems = req.session.cartItems;
+    const totalAmount = req.session.totalAmount;
 
     if (!cartItems || cartItems.length === 0) {
         return res.status(400).json({ success: false, message: 'Cart is empty' });
     }
 
     try {
-        // Map the payment_option to match schema enum values
         const paymentMethod = payment_option === 'cash_on_delivery' ? 'Cash on Delivery' :
                              payment_option === 'razor_pay' ? 'Razor Pay' : 'Wallet';
 
-        // Create and save the order in the database
+        // Fetch the address details from the Address collection
+        const userAddress = await Address.findOne({
+            userId: userId,
+            "address._id": selectedAddress
+        }, { "address.$": 1 });
+
+        if (!userAddress || !userAddress.address.length) {
+            return res.status(400).json({ success: false, message: 'Address not found or does not belong to the user' });
+        }
+
+        const address = userAddress.address[0]; // Full address details
+
+        // Create the order with full address details
         const order = new Order({
             userId,
-            addressId: selectedAddress,
+            address: {
+                addressType: address.addressType,
+                name: address.name,
+                city: address.city,
+                landMark: address.landMark,
+                state: address.state,
+                pincode: address.pincode,
+                phone: address.phone,
+                altPhone: address.altPhone,
+            },
             paymentMethod,
             items: cartItems.map(item => ({
-                product: item.productId, 
+                product: item.productId,
                 quantity: item.quantity,
                 price: item.price,
                 totalPrice: item.totalPrice
             })),
             totalAmount,
-            status: paymentMethod === 'Cash on Delivery' ? 'Pending' : 'Processing', 
-            orderDate: new Date()
+            status: paymentMethod === 'Cash on Delivery' ? 'Pending' : 'Processing',
+            orderDate: new Date(),
+            couponApplied: req.session.couponApplied || false,
         });
 
         await order.save();
 
-        // Clear the cart or update it as needed
         await Cart.findOneAndUpdate({ userId }, { items: [] });
 
-        // Respond with success message
-        res.json({ success: true });
+        res.json({ success: true, message: 'Order placed successfully', orderId: order.orderId });
     } catch (error) {
         console.error('Error placing order:', error);
-        res.status(500).json({ success: false, message: 'Order placement failed', error: error.message });
+        res.status(500).json({ success: false, message: 'Error placing order', error: error.message });
     }
 };
 

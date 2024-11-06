@@ -13,31 +13,63 @@ const loadAddAddressPage = async(req,res)=>{
     }
 }
 
+// const addAddress = async (req, res) => {
+//     const userId = req.session.user;
+//     console.log('checking the user id is coming or not',userId);
+//     const { addressType, name, city, landMark, state, pincode, phone, altPhone } = req.body;
+
+//     if (!userId || !addressType || !name || !city || !landMark || !state || !pincode || !phone || !altPhone) {
+//         return res.status(400).json({ error: "All fields are required" });
+//     }
+
+//     try {
+//         let userAddress = await Address.findOne({ userId });
+
+//         if (!userAddress) {
+//             userAddress = new Address({ userId, address: [] });
+//         }
+
+//         userAddress.address.push({ addressType, name, city, landMark, state, pincode, phone, altPhone });
+//         await userAddress.save();
+
+//         res.redirect('/user-profile?success=true'); 
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ error: "Server error" });
+//     }
+// };
+
 const addAddress = async (req, res) => {
     const userId = req.session.user;
-    console.log('checking the user id is coming or not',userId);
+    console.log('Checking if user ID is present:', userId);
+    
+    // Destructure form data from the request body
     const { addressType, name, city, landMark, state, pincode, phone, altPhone } = req.body;
 
+    // Check that all fields are present
     if (!userId || !addressType || !name || !city || !landMark || !state || !pincode || !phone || !altPhone) {
         return res.status(400).json({ error: "All fields are required" });
     }
 
     try {
+        // Fetch or create an address document for this user
         let userAddress = await Address.findOne({ userId });
-
         if (!userAddress) {
             userAddress = new Address({ userId, address: [] });
         }
 
+        // Add new address details to the addresses array
         userAddress.address.push({ addressType, name, city, landMark, state, pincode, phone, altPhone });
         await userAddress.save();
 
-        res.redirect('/user-profile?success=true'); 
+        // Redirect to the user profile with a success indicator
+        res.redirect('/user-profile?success=true');
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Server error" });
+        console.error('Error saving address:', error);
+        res.status(500).json({ error: "Failed to save the address. Please try again later." });
     }
 };
+
 
 const showAddress = async(req,res)=>{
 
