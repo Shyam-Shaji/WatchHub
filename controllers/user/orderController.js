@@ -1,5 +1,5 @@
 const Order = require('../../models/orderSchema');
-
+const User = require('../../models/userSchema');
 // const viewOrder = async (req, res) => {
 //     try {
 //         const userId = req.session.user; // Assuming user ID is stored in the session
@@ -49,7 +49,10 @@ const Order = require('../../models/orderSchema');
 
 const viewOrder = async (req, res) => {
     try {
+        const user = req.session.user;
+        const userData = await User.findOne({_id: user});
         const userId = req.session.user; // Assuming user ID is stored in the session
+        
 
         if (!userId) {
             return res.redirect('/login'); // Redirect to login if user is not authenticated
@@ -61,7 +64,7 @@ const viewOrder = async (req, res) => {
         console.log('Order details for user:', orders); // Log orders for debugging
 
         // Render the order view with the orders list
-        return res.render('order', { orders });
+        return res.render('order', { orders, user : userData });
 
     } catch (error) {
         console.error('Error in order page:', error); // Log error for debugging

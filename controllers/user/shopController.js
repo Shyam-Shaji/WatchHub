@@ -1,8 +1,11 @@
 const Product = require('../../models/productSchema');
 const Category = require('../../models/categorySchema');
+const User = require('../../models/userSchema');
 
 const loadShopPage = async (req, res) => {
     try {
+        const user = req.session.user;
+        const userData = await User.findOne({_id: user});
         // Retrieve the sorting option from query parameters (default to 'featured' if none provided)
         const sortOption = req.query.sort || 'featured';
         const categories = await Category.find({ isListed: true });
@@ -48,11 +51,13 @@ const loadShopPage = async (req, res) => {
         const totalPages = Math.ceil(totalProducts / limit);
 
         return res.render('shopPage', {
+            user : userData,
             products,
             categories,
             currentPage: page,
             totalPages,
-            sortOption
+            sortOption,
+            
         });
 
     } catch (error) {

@@ -1,5 +1,6 @@
 const Cart = require('../../models/cartSchema');
 const Product = require('../../models/productSchema');
+const User = require('../../models/userSchema');
 
 const addToCart = async (req, res) => {  
     try {
@@ -57,6 +58,8 @@ const addToCart = async (req, res) => {
 
 const viewCart = async (req, res) => { 
     try {
+        const user = req.session.user;
+        const userData = await User.findOne({_id:user});
         const userId = req.session.user;
         if (!userId) {
             return res.redirect('/login');
@@ -67,7 +70,7 @@ const viewCart = async (req, res) => {
         console.log('checking image: ',cart);
 
         if (!cart || cart.items.length === 0) {
-            return res.render('cart', { cart, subtotal: 0, shipping: 0, total: 0 });
+            return res.render('cart', { cart, subtotal: 0, shipping: 0, total: 0, user:userData });
         }
 
         // Calculate subtotal
@@ -79,7 +82,7 @@ const viewCart = async (req, res) => {
         // Calculate total
         const total = subtotal + shipping;
 
-        res.render('cart', { cart, subtotal, shipping, total,  });
+        res.render('cart', { cart, subtotal, shipping, total, user:userData   });
         
     } catch (error) {
         console.error('Error loading cart', error);
