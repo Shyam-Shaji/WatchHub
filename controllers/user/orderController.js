@@ -1,5 +1,6 @@
 const Order = require('../../models/orderSchema');
 const User = require('../../models/userSchema');
+const Product = require('../../models/productSchema')
 // const viewOrder = async (req, res) => {
 //     try {
 //         const userId = req.session.user; // Assuming user ID is stored in the session
@@ -76,7 +77,7 @@ const viewOrder = async (req, res) => {
 const orderCancell = async (req, res) => {
     const { orderId } = req.params;
     try {
-        // Use findOneAndUpdate with orderId (String) instead of _id
+        // Use findOneAndUpdate with orderId (String) instead of _id to update the order status
         const order = await Order.findOneAndUpdate(
             { orderId: orderId },
             { status: 'Cancelled' },
@@ -86,14 +87,25 @@ const orderCancell = async (req, res) => {
         if (!order) {
             return res.json({ success: false, message: 'Order not found' });
         }
+        // console.log(order)
+        // return
+        // Retrieve the products from the order and update their quantities
+        for (const item of order.items) {
+            // console.log(item)
+            await Product.findByIdAndUpdate(
+                item.product,
+                { $inc: { quantity: item.quantity } } // Increase product quantity by the amount in the canceled order
+            );
+        }
 
-        res.json({ success: true, message: 'Order cancelled successfully.' });
-        
+        res.json({ success: true, message: 'Order cancelled successfully and product quantities updated.' });
+
     } catch (error) {
         console.error(error);
         res.json({ success: false, message: 'An error occurred while cancelling the order.' });
     }
 };
+
 
 
 

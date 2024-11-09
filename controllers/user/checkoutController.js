@@ -157,17 +157,33 @@ const placeOrder = async (req, res) => {
 
         await order.save();
 
+        // Update the product stock in an atomic operation
+        for (const item of cartItems) {
+            console.log(`Updating stock for product ID: ${item.productId}, Quantity: ${item.quantity}`);
+            
+            const updatedProduct = await Product.findByIdAndUpdate(
+                item.productId,
+                { $inc: { quantity: -item.quantity } },
+                { new: true }
+            );
+
+            if (!updatedProduct) {
+                console.error(`Failed to find product with ID: ${item.productId}`);
+                return res.status(400).json({ success: false, message: 'Product not found for stock update' });
+            } else {
+                console.log(`Stock updated successfully for product ID: ${item.productId}, New stock: ${updatedProduct.stock}`);
+            }
+        }
+
+        // Clear the user's cart
         await Cart.findOneAndUpdate({ userId }, { items: [] });
 
-        res.json({ success: true, message: 'Order placed successfully', orderId: order.orderId });
+        res.json({ success: true, message: 'Order placed successfully', orderId: order._id });
     } catch (error) {
         console.error('Error placing order:', error);
         res.status(500).json({ success: false, message: 'Error placing order', error: error.message });
     }
 };
-
-
-
 
 module.exports = {
     checkoutPage,

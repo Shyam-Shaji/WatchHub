@@ -111,9 +111,13 @@ function cancelOrder(orderId) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log(response)
+                return response.json()})
             .then(data => {
+                console.log(data)
                 if (data.success) {
+                    
                     // Update status text in the DOM
                     document.getElementById(`status-${orderId}`).innerText = 'Status: Cancelled';
                     
