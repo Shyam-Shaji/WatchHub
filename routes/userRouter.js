@@ -42,6 +42,7 @@ router.get('/productDetails/:id',auth.userAuth,userController.loadProductDetail)
 
 //user profile
 router.get('/user-profile',userController.userDashboard);
+router.post('/update-profile', userController.updateUserProfile);
 //user profile
 
 //user address

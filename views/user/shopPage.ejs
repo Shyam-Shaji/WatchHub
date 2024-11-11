@@ -34,6 +34,8 @@
                                                 <option value="priceHighLow" <%= sortOption === 'priceHighLow' ? 'selected' : '' %>>Price: High to Low</option>
                                                 <option value="nameAZ" <%= sortOption === 'nameAZ' ? 'selected' : '' %>>A-Z</option>
                                                 <option value="nameZA" <%= sortOption === 'nameZA' ? 'selected' : '' %>>Z-A</option>
+                                                <option value="newArrivals" <%= sortOption === 'newArrivals' ? 'selected' : '' %>>New Arrivals</option>
+
                                             </select>
                                         </form>
                                     </div>
@@ -150,116 +152,51 @@
     }
     //add to cart
 
-document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function () {
     // Add event listeners to sort options
-    document.querySelectorAll('.sort-by-dropdown a').forEach(option => {
-        option.addEventListener('click', function (event) {
-            event.preventDefault(); // Prevent default link behavior
-
-            const sortType = this.getAttribute('data-sort');
+    document.querySelectorAll('.sort-by-dropdown-wrap select').forEach(option => {
+        option.addEventListener('change', function () {
+            const sortType = this.value;
 
             // Get the product items
-            const productList = document.querySelector('.product-grid-3'); // Adjust this selector if needed
+            const productList = document.querySelector('.product-grid-3');
             const products = Array.from(productList.children);
 
-            let filteredProducts;
+            let filteredProducts = products;
 
-            // Filtering logic for New Arrivals
             if (sortType === 'new-arrivals') {
+                // Filter products for new arrivals
                 filteredProducts = products.filter(product => {
-                    return product.dataset.isNew === "true"; // Assuming you set this attribute for new arrivals
+                    return product.dataset.isNew === "true";
                 });
-            } else {
-                // Handle other sorting logic (for example: low to high, high to low)
-                // You can add sorting logic similar to previous examples if needed.
-            }
-
-            // Clear existing products from the product list
-            productList.innerHTML = '';
-
-            // Append filtered products back to the product list
-            (filteredProducts.length ? filteredProducts : products).forEach(product => {
-                productList.appendChild(product);
-            });
-        });
-    });
-});
-
-
-//new 
-document.addEventListener('DOMContentLoaded', function () {
-    // Add event listeners to sort options
-    document.querySelectorAll('.sort-by-dropdown a').forEach(option => {
-        option.addEventListener('click', function (event) {
-            event.preventDefault(); // Prevent default link behavior
-
-            const sortType = this.getAttribute('data-sort');
-
-            // Get the product items
-            const productList = document.querySelector('.product-grid-3'); // Adjust this selector if needed
-            const products = Array.from(productList.children);
-
-            let filteredProducts;
-
-            // Filtering logic for New Arrivals
-            if (sortType === 'new-arrivals') {
-                filteredProducts = products.filter(product => {
-                    return product.dataset.isNew === "true"; // Assuming you set this attribute for new arrivals
-                });
-            } else if (sortType === 'high-to-low') {
-                // Sort products by price: High to Low
+            } else if (sortType === 'priceHighLow') {
+                // Sort by Price: High to Low
                 filteredProducts = products.sort((a, b) => {
                     const priceA = parseFloat(a.querySelector('.product-price span').textContent.replace('$', ''));
                     const priceB = parseFloat(b.querySelector('.product-price span').textContent.replace('$', ''));
-                    return priceB - priceA; // Sort in descending order
+                    return priceB - priceA;
                 });
-            } else {
-                // Handle other sorting logic (e.g., low to high, featured, etc.)
-                // Add other sorting options here as needed.
-            }
-
-            // Clear existing products from the product list
-            productList.innerHTML = '';
-
-            // Append filtered products back to the product list
-            (filteredProducts.length ? filteredProducts : products).forEach(product => {
-                productList.appendChild(product);
-            });
-        });
-    });
-});
-
-
-
-document.addEventListener('DOMContentLoaded', function () {
-    // Add event listeners to sort options
-    document.querySelectorAll('.sort-by-dropdown a').forEach(option => {
-        option.addEventListener('click', function (event) {
-            event.preventDefault(); // Prevent default link behavior
-
-            const sortType = this.getAttribute('data-sort');
-
-            // Get the product items
-            const productList = document.querySelector('.product-grid-3'); // Adjust this selector if needed
-            const products = Array.from(productList.children);
-
-            let filteredProducts;
-
-            // Filtering logic for New Arrivals
-            if (sortType === 'new-arrivals') {
-                filteredProducts = products.filter(product => {
-                    return product.dataset.isNew === "true"; // Assuming you set this attribute for new arrivals
-                });
-            } else if (sortType === 'high-to-low') {
-                // Sort products by price: High to Low
+            } else if (sortType === 'priceLowHigh') {
+                // Sort by Price: Low to High
                 filteredProducts = products.sort((a, b) => {
                     const priceA = parseFloat(a.querySelector('.product-price span').textContent.replace('$', ''));
                     const priceB = parseFloat(b.querySelector('.product-price span').textContent.replace('$', ''));
-                    return priceB - priceA; // Sort in descending order
+                    return priceA - priceB;
                 });
-            } else {
-                // Handle other sorting logic (e.g., low to high, featured, etc.)
-                // Add other sorting options here as needed.
+            } else if (sortType === 'nameAZ') {
+                // Sort by Name: A-Z
+                filteredProducts = products.sort((a, b) => {
+                    const nameA = a.querySelector('h2 a').textContent.toLowerCase();
+                    const nameB = b.querySelector('h2 a').textContent.toLowerCase();
+                    return nameA.localeCompare(nameB);
+                });
+            } else if (sortType === 'nameZA') {
+                // Sort by Name: Z-A
+                filteredProducts = products.sort((a, b) => {
+                    const nameA = a.querySelector('h2 a').textContent.toLowerCase();
+                    const nameB = b.querySelector('h2 a').textContent.toLowerCase();
+                    return nameB.localeCompare(nameA);
+                });
             }
 
             // Clear existing products from the product list
@@ -272,9 +209,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
-
-
-//new
 
 </script>
 

@@ -1,13 +1,20 @@
 
 <%- include('../partials/user/header.ejs') -%>
 
+<style>
+    .edit-button {
+        position: absolute;
+        right: 20px;
+        bottom: 20px;
+    }
+</style>
+
 <main class="main">
     <div class="page-header breadcrumb-wrap">
         <div class="container">
             <div class="breadcrumb">
                 <a href="index.html" rel="nofollow">Home</a>
                 <span></span> Profile
-                <!-- <span></span> Account -->
             </div>
         </div>
     </div>
@@ -20,12 +27,33 @@
                         <div class="col-md-8">
                             <div class="tab-content dashboard-content">
                                 <div class="tab-pane fade active show" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
-                                    <div class="card">
+                                    <div class="card" style="position: relative;">
                                         <div class="card-header">
                                             <h5 class="mb-0">Hello <%= user.name %>!</h5> 
                                         </div>
                                         <div class="card-body">
-                                            <p>From your account dashboard, you can easily check &amp; view your <a href="#">recent orders</a>, manage your <a href="#">shipping and billing addresses</a>, and <a href="#">edit your password and account details.</a></p>
+                                            <p><strong>Email:</strong> <%= user.email %></p>
+                                            <p><strong>Phone Number:</strong> <%= user.phone %></p>
+                                            <button id="editButton" class="btn btn-primary edit-button" onclick="toggleEditForm()">Edit</button>
+                                        </div>
+                                        <!-- Edit Form (hidden by default) -->
+                                        <div id="editForm" style="display: none;" class="card-body">
+                                            <form action="/update-profile" method="POST">
+                                                <div class="mb-3">
+                                                    <label for="name" class="form-label">Name</label>
+                                                    <input type="text" class="form-control" id="name" name="name" value="<%= user.name %>">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="email" class="form-label">Email</label>
+                                                    <input type="email" class="form-control" id="email" name="email" value="<%= user.email %>">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="phone" class="form-label">Phone Number</label>
+                                                    <input type="text" class="form-control" id="phone" name="phone" value="<%= user.phone %>">
+                                                </div>
+                                                <button type="submit" class="btn btn-success">Save Changes</button>
+                                                <button type="button" class="btn btn-secondary" onclick="toggleEditForm()">Cancel</button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
@@ -38,5 +66,21 @@
             </div>
         </div>
     </section>
-</main>
+</main> 
+
+<script>
+    function toggleEditForm() {
+        const editForm = document.getElementById("editForm");
+        const editButton = document.getElementById("editButton");
+        if (editForm.style.display === "none") {
+            editForm.style.display = "block";
+            editButton.style.display = "none";
+        } else {
+            editForm.style.display = "none";
+            editButton.style.display = "block";
+        }
+    }
+</script>
+
+
 <%- include('../partials/user/footer.ejs') %>

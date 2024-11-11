@@ -47,6 +47,7 @@
                                     </table>
 
                                     <!-- Order Items Table -->
+                                    <!-- Order Items Table -->
                                     <table class="table mt-3">
                                         <thead>
                                             <tr>
@@ -59,7 +60,14 @@
                                         <tbody>
                                             <% order.items.forEach(item => { %>
                                                 <tr>
-                                                    <td><%= item.product ? item.product.name : 'Product not found' %></td>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <!-- Display Product Image -->
+                                                            <img src="<%= item.product ? item.product.image : '/path/to/default/image.jpg' %>" alt="<%= item.product ? item.product.name : 'Product not found' %>" width="50" height="50" class="mr-2">
+                                                            <!-- Display Product Name -->
+                                                            <%= item.product ? item.product.name : 'Product not found' %>
+                                                        </div>
+                                                    </td>
                                                     <td><%= item.quantity %></td>
                                                     <td>$<%= item.price %></td>
                                                     <td>$<%= item.totalPrice %></td>
@@ -67,6 +75,7 @@
                                             <% }) %>
                                         </tbody>
                                     </table>
+
                                     <p><strong>Total Amount:</strong> $<%= order.totalAmount %></p>
 
                                     <!-- Order Cancel Button -->

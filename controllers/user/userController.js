@@ -347,6 +347,21 @@ const userDashboard = async (req, res) => {
     }
 };
 
+const updateUserProfile = async(req,res)=>{
+    try {
+
+        const userId = req.session.user;
+        const {name, email, phone} = req.body;
+
+        await User.findByIdAndUpdate(userId,{name, email,phone});
+        res.redirect('/user-profile');
+        
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server Error');
+    }
+}
+
 
 
 module.exports = {
@@ -361,5 +376,5 @@ module.exports = {
     login,
     loadProductDetail,
     userDashboard,
-    
+    updateUserProfile,
 }
