@@ -27,7 +27,7 @@ const sendVerificationEmail = async (email, otp) => { // Fix: Added parameters f
         });
 
         const mailOption = {
-            from: process.env.NODEMAILER_EMAIL, // Fix: Corrected 'form' to 'from'
+            from: process.env.NODEMAILER_EMAIL,
             to: email,
             subject: "Your OTP for password reset",
             text: `Your OTP is ${otp}`,

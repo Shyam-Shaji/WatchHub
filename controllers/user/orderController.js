@@ -2,31 +2,36 @@ const Order = require('../../models/orderSchema');
 const User = require('../../models/userSchema');
 const Product = require('../../models/productSchema')
 
-const viewOrder = async (req, res) => {
+const viewOrder = async (req, res) => { 
     try {
-        const user = req.session.user;
-        const userData = await User.findOne({_id: user});
-        const userId = req.session.user; 
-        
-
-        if (!userId) {
+        const user = req.session.user;  
+        if (!user) {
             return res.redirect('/login'); 
         }
 
         
-        const orders = await Order.find({ userId: userId }).populate('items.product','name image'); 
-
-        console.log('Order details for user:', orders); 
+        const userData = await User.findById(user);  
+        if (!userData) {
+            return res.redirect('/login'); 
+        }
 
        
-        return res.render('order', { orders, user : userData });
+        const orders = await Order.find({ userId: userData._id })
+                                  .populate('items.product', 'productImage productName') 
+                                  .sort({ createdAt: -1 });  
+
+      
+        return res.render('order', { orders, user: userData });
 
     } catch (error) {
-        console.error('Error in order page:', error); 
-       
-        res.render('order', { orderStatus: 'Failed to load order details', orders: [] }); 
+        console.error('Error in order page:', error);
+        
+        
+        res.render('order', { orderStatus: 'Failed to load order details', orders: [] });
     }
 };
+
+
 
 const orderCancell = async (req, res) => {
     const { orderId } = req.params;
@@ -43,7 +48,7 @@ const orderCancell = async (req, res) => {
         }
         // console.log(order)
         // return
-        // Retrieve the products from the order and update their quantities
+       
         for (const item of order.items) {
             // console.log(item)
             await Product.findByIdAndUpdate(

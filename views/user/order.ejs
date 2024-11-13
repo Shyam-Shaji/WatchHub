@@ -63,9 +63,9 @@
                                                     <td>
                                                         <div class="d-flex align-items-center">
                                                             <!-- Display Product Image -->
-                                                            <img src="<%= item.product ? item.product.image : '/path/to/default/image.jpg' %>" alt="<%= item.product ? item.product.name : 'Product not found' %>" width="50" height="50" class="mr-2">
+                                                            <img src="/uploads/re-image/<%= item.product ? item.product.productImage[0] : '' %>" alt="<%= item.product ? item.product.productName : 'Product not found' %>" width="50" height="50" class="mr-2">
                                                             <!-- Display Product Name -->
-                                                            <%= item.product ? item.product.name : 'Product not found' %>
+                                                            <%= item.product ? item.product.productName : 'Product not found' %>
                                                         </div>
                                                     </td>
                                                     <td><%= item.quantity %></td>

@@ -40,7 +40,7 @@ const updateOrderStatus = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
 
-        // If the order is canceled, redirect to the order list page
+        // If the order is cancelled, provide a redirect URL
         if (status === 'Cancelled') {
             return res.json({ success: true, redirect: `/admin/orderlist?page=${page}` });
         }
@@ -52,6 +52,7 @@ const updateOrderStatus = async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to update order status' });
     }
 };
+
 
 
 

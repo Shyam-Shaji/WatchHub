@@ -43,26 +43,26 @@ const addAddress = async (req, res) => {
     const userId = req.session.user;
     console.log('Checking if user ID is present:', userId);
     
-    // Destructure form data from the request body
+    
     const { addressType, name, city, landMark, state, pincode, phone, altPhone } = req.body;
 
-    // Check that all fields are present
+    
     if (!userId || !addressType || !name || !city || !landMark || !state || !pincode || !phone || !altPhone) {
         return res.status(400).json({ error: "All fields are required" });
     }
 
     try {
-        // Fetch or create an address document for this user
+        
         let userAddress = await Address.findOne({ userId });
         if (!userAddress) {
             userAddress = new Address({ userId, address: [] });
         }
 
-        // Add new address details to the addresses array
+       
         userAddress.address.push({ addressType, name, city, landMark, state, pincode, phone, altPhone });
         await userAddress.save();
 
-        // Redirect to the user profile with a success indicator
+       
         res.redirect('/user-profile?success=true');
     } catch (error) {
         console.error('Error saving address:', error);

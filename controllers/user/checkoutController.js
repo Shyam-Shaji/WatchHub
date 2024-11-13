@@ -109,27 +109,41 @@ const placeOrder = async (req, res) => {
     const cartItems = req.session.cartItems;
     const totalAmount = req.session.totalAmount;
 
+    // Check if cart is empty
     if (!cartItems || cartItems.length === 0) {
         return res.status(400).json({ success: false, message: 'Cart is empty' });
     }
 
     try {
-        const paymentMethod = payment_option === 'cash_on_delivery' ? 'Cash on Delivery' :
-                             payment_option === 'razor_pay' ? 'Razor Pay' : 'Wallet';
+        // Determine payment method based on payment_option ID
+        let paymentMethod;
+        if (payment_option === 'cash_on_delivery') {
+            paymentMethod = 'Cash on Delivery';
+        } else if (payment_option === 'razor_pay') {
+            paymentMethod = 'Razor Pay';
+        } else if (payment_option === 'wallet') {
+            paymentMethod = 'Wallet';
+        } else {
+            return res.status(400).json({ success: false, message: 'Invalid payment option' });
+        }
 
-        // Fetch the address details from the Address collection
-        const userAddress = await Address.findOne({
-            userId: userId,
-            "address._id": selectedAddress
-        }, { "address.$": 1 });
+        // Retrieve the selected address to verify it belongs to the user
+        const userAddress = await Address.findOne(
+            {
+                userId: userId,
+                "address._id": selectedAddress
+            },
+            { "address.$": 1 }
+        );
 
+        // Check if the address exists and belongs to the user
         if (!userAddress || !userAddress.address.length) {
             return res.status(400).json({ success: false, message: 'Address not found or does not belong to the user' });
         }
 
-        const address = userAddress.address[0]; // Full address details
+        const address = userAddress.address[0];
 
-        // Create the order with full address details
+        // Create new order
         const order = new Order({
             userId,
             address: {
@@ -155,12 +169,11 @@ const placeOrder = async (req, res) => {
             couponApplied: req.session.couponApplied || false,
         });
 
+        // Save order to database
         await order.save();
 
-        // Update the product stock in an atomic operation
+        // Update product stock
         for (const item of cartItems) {
-            console.log(`Updating stock for product ID: ${item.productId}, Quantity: ${item.quantity}`);
-            
             const updatedProduct = await Product.findByIdAndUpdate(
                 item.productId,
                 { $inc: { quantity: -item.quantity } },
@@ -170,20 +183,22 @@ const placeOrder = async (req, res) => {
             if (!updatedProduct) {
                 console.error(`Failed to find product with ID: ${item.productId}`);
                 return res.status(400).json({ success: false, message: 'Product not found for stock update' });
-            } else {
-                console.log(`Stock updated successfully for product ID: ${item.productId}, New stock: ${updatedProduct.stock}`);
             }
         }
 
-        // Clear the user's cart
+        // Clear cart and coupon sessions
         await Cart.findOneAndUpdate({ userId }, { items: [] });
+        req.session.cartItems = [];
+        req.session.couponApplied = false;
 
+        // Respond with success
         res.json({ success: true, message: 'Order placed successfully', orderId: order._id });
     } catch (error) {
         console.error('Error placing order:', error);
-        res.status(500).json({ success: false, message: 'Error placing order', error: error.message });
+        res.status(500).json({ success: false, message: 'Failed to place order due to an internal error' });
     }
 };
+
 
 module.exports = {
     checkoutPage,

@@ -296,33 +296,33 @@ const login = async(req,res)=>{
     }
 }
 
-const loadProductDetail = async(req,res)=>{
+const loadProductDetail = async (req, res) => {
     try {
-
+        const userId = req.session.user;
+        if (!userId) {
+            return res.redirect('/login');
+        }
+        
+        const userData = await User.findById(userId);
         const productId = req.params.id;
         const product = await Product.findById(productId);
-
-        console.log('checking the product detail image : ',product);
-
-        // if(!product){
-        //     return res.status(404).send('Product not found');
-        // }
-
+        
         const relatedProducts = await Product.find({
             category: product.category,
-            _id: {$ne : productId}
+            _id: { $ne: productId }
         }).limit(4);
 
-        console.log('checking releated product : ',relatedProducts);
-
-        res.render('productDetails',{product,
+        res.render('productDetails', {
+            product,
             relatedProducts,
-            user: req.user});
-        
+            user: userData, 
+        });
+
     } catch (error) {
+        console.error('Error loading product details:', error);
         res.status(500).send('Server error');
     }
-}
+};
 
 //user dashboard
 const userDashboard = async (req, res) => {

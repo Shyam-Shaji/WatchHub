@@ -184,7 +184,7 @@
 
 
 <script>
-    document.querySelector(".btn-fill-out").addEventListener("click", async function(event) {
+     document.querySelector(".btn-fill-out").addEventListener("click", async function(event) {
         event.preventDefault(); // Prevent traditional form submission
         
         // Get selected address and payment option
@@ -193,7 +193,11 @@
 
         // Validate selections
         if (!selectedAddress || !paymentOption) {
-            alert('Please select both an address and a payment method.');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Missing Information',
+                text: 'Please select both an address and a payment method.'
+            });
             return;
         }
 
@@ -216,11 +220,21 @@
                 // Show the confirmation modal on successful order placement
                 $('#orderConfirmationModal').modal('show');
             } else {
-                alert('Failed to place the order: ' + result.message);
+                // Show error message using SweetAlert
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Order Failed',
+                    text: 'Failed to place the order: ' + result.message
+                });
             }
         } catch (error) {
             console.error('Error placing order:', error);
-            alert('There was an error placing your order. Please try again.');
+            // Show error message using SweetAlert
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'There was an error placing your order. Please try again.'
+            });
         }
     });
 </script>

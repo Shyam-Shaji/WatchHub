@@ -112,8 +112,17 @@
                                     </div>
 
                                     <ul class="product-meta font-xs color-grey mt-50">
-                                        <li>Availability: <span class="in-stock text-success ml-2"><%= product.quantity %> In Stock</span></li>
+                                        <% if (product.quantity > 0) { %>
+                                            <li>
+                                                Availability: <span class="in-stock text-success ml-2"><%= product.quantity %> In Stock</span>
+                                            </li>
+                                        <% } else { %>
+                                            <li>
+                                                Availability: <span class="out-of-stock text-danger ml-2">Out of Stock</span>
+                                            </li>
+                                        <% } %>
                                     </ul>
+                                    
                                 </div>
                             </div>
                         </div>
@@ -178,6 +187,67 @@
     </section>
 </div>
 
+<script>
 
+    
+    const mainImage = document.querySelector('.product-image-slider .border-radius-10 img');
+
+    
+    document.querySelectorAll('.preview-thumbnail').forEach((thumbnail) => {
+        thumbnail.addEventListener('click', (event) => {
+            event.preventDefault();
+            
+            
+            const newSrc = event.target.src;
+            
+           
+            mainImage.src = newSrc;
+        });
+    });
+
+
+    document.querySelectorAll('.qty-up').forEach(button => {
+    button.addEventListener('click', (event) => {
+        event.preventDefault();
+        
+        // Get the current quantity and the product's maximum quantity
+        const qtyValElement = event.target.closest('.detail-qty').querySelector('.qty-val');
+        let currentQty = parseInt(qtyValElement.textContent);
+        const maxQty = parseInt(document.querySelector('.in-stock').textContent.split(" ")[0]);
+
+        // Check if current quantity is less than maximum quantity
+        if (currentQty < maxQty) {
+            // Increment the quantity
+            currentQty += 1;
+            qtyValElement.textContent = currentQty;
+        } else {
+            // Display warning if max quantity is reached
+            Swal.fire({
+                icon: 'warning',
+                title: 'Quantity Limit',
+                text: `Only ${maxQty} items are in stock.`,
+                confirmButtonColor: '#3085d6'
+            });
+        }
+    });
+});
+
+// Decrease button handler
+document.querySelectorAll('.qty-down').forEach(button => {
+    button.addEventListener('click', (event) => {
+        event.preventDefault();
+        
+        const qtyValElement = event.target.closest('.detail-qty').querySelector('.qty-val');
+        let currentQty = parseInt(qtyValElement.textContent);
+
+        // Ensure quantity does not go below 1
+        if (currentQty > 1) {
+            currentQty -= 1;
+            qtyValElement.textContent = currentQty;
+        }
+    });
+});
+
+</script>
 
 <%- include('../partials/user/footer.ejs') -%>

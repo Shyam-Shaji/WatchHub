@@ -7,35 +7,35 @@ const loadShopPage = async (req, res) => {
         const user = req.session.user;
         const userData = await User.findOne({ _id: user }).lean();
         
-        // Retrieve the sorting option from query parameters (default to 'newArrivals' if none provided)
+        
         const sortOption = req.query.sort || 'newArrivals';
         const categories = await Category.find({ isListed: true }).lean();
         
-        // Prepare sorting criteria based on the selected option
+       
         let sortCriteria;
         switch (sortOption) {
             case 'priceLowHigh':
-                sortCriteria = { salePrice: 1 }; // Ascending price
+                sortCriteria = { salePrice: 1 }; 
                 break;
             case 'priceHighLow':
-                sortCriteria = { salePrice: -1 }; // Descending price
+                sortCriteria = { salePrice: -1 }; 
                 break;
             case 'nameAZ':
-                sortCriteria = { productName: 1 }; // Alphabetical order
+                sortCriteria = { productName: 1 }; 
                 break;
             case 'nameZA':
-                sortCriteria = { productName: -1 }; // Reverse alphabetical
+                sortCriteria = { productName: -1 };
                 break;
             case 'newArrivals':
             default:
-                sortCriteria = { createdAt: -1 }; // Latest products first
+                sortCriteria = { createdAt: -1 };
         }
 
-        // Pagination setup
+       
         const page = parseInt(req.query.page) || 1;
         const limit = 12;
 
-        // Fetch products with filters, sorting, and pagination
+        
         const products = await Product.find({
             isBlocked: false,
             category: { $in: categories.map(category => category._id) },
@@ -46,7 +46,7 @@ const loadShopPage = async (req, res) => {
         .limit(limit)
         .lean();
 
-        // Count total products for pagination
+       
         const totalProducts = await Product.countDocuments({
             isBlocked: false,
             category: { $in: categories.map(category => category._id) },
@@ -54,7 +54,7 @@ const loadShopPage = async (req, res) => {
         });
         const totalPages = Math.ceil(totalProducts / limit);
 
-        // Render shop page with the sorted and paginated products
+       
         return res.render('shopPage', {
             user: userData,
             products,
