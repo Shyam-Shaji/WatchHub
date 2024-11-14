@@ -4,6 +4,7 @@ const userController = require('../controllers/user/userController');
 const profileController = require('../controllers/user/profileController');
 const orderController = require('../controllers/user/orderController');
 const addressController = require('../controllers/user/addressController');
+const wishlistController = require('../controllers/user/wishlisControllert');
 const cartController = require('../controllers/user/cartController');
 const shopController = require('../controllers/user/shopController');
 const checkoutController = require('../controllers/user/checkoutController');
@@ -53,6 +54,12 @@ router.get('/editAddress/:addressId',addressController.updateAddress);
 router.post('/editAddress/:addressId',addressController.updatedAddress);
 router.delete('/deleteAddress/:addressId',addressController.deleteAddress);
 //user address
+
+//wishlist
+router.get('/wishlistPage',wishlistController.wishlistPage);
+router.get('/addToWishlist',wishlistController.addToWishlist);
+router.get('/removeFromWishlist/:id',wishlistController.removeFromWishlist);
+//wishlist
 
 //cart management
 router.get('/addToCart',cartController.addToCart);
