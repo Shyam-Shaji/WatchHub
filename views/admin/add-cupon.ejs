@@ -1,0 +1,117 @@
+<%- include('../partials/admin/admin-header.ejs') -%>
+
+<section class="content-main">
+    <div class="row">
+        <div class="col-9">
+            <div class="content-header">
+                <h2 class="content-title">Add New Coupon</h2>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="post" action="/admin/addCoupon" onsubmit="return validateCouponForm()">
+                        <!-- Coupon Name -->
+                        <div class="mb-4">
+                            <label for="coupon_name" class="form-label">Coupon Name</label>
+                            <input type="text" placeholder="Enter coupon name" name="name" class="form-control border" id="coupon_name">
+                            <div id="name-error" class="error-message text-danger"></div>
+                        </div>
+
+                        <!-- Expiration Date -->
+                        <div class="mb-4">
+                            <label for="expire_on" class="form-label">Expiration Date</label>
+                            <input type="date" name="expireOn" class="form-control border" id="expire_on">
+                            <div id="expireOn-error" class="error-message text-danger"></div>
+                        </div>
+
+                        <!-- Offer Price -->
+                        <div class="mb-4">
+                            <label for="offer_price" class="form-label">Offer Price</label>
+                            <input type="number" placeholder="Enter discount amount" name="offerPrice" class="form-control border" id="offer_price">
+
+                            <div id="offerPrice-error" class="error-message text-danger"></div>
+                        </div>
+
+                        <!-- Minimum Price -->
+                        <div class="mb-4">
+                            <label for="minimum_price" class="form-label">Minimum Purchase Amount</label>
+                            <input type="number" placeholder="Enter minimum purchase amount" name="minimumPrice" class="form-control border" id="minimum_price">
+                            <div id="minimumPrice-error" class="error-message text-danger"></div>
+                        </div>
+
+                        <!-- Is Listed -->
+                        <div class="mb-4">
+                            <label class="form-label">Is Listed</label>
+                            <select class="form-select border" name="isList" id="is_list">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                            <div id="isList-error" class="error-message text-danger"></div>
+                        </div>
+
+                        <!-- User ID (Optional) -->
+                        <div class="mb-4">
+                            <label for="user_id" class="form-label">User ID (Optional)</label>
+                            <input type="text" placeholder="Enter user ID (optional)" name="userId" class="form-control border" id="user_id">
+                            <div id="userId-error" class="error-message text-danger"></div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div>
+                            <button class="btn btn-md rounded font-sm hover-up" type="submit">Create Coupon</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    function validateCouponForm() {
+        let isValid = true;
+
+        // Get input elements
+        const name = document.getElementById("coupon_name");
+        const expireOn = document.getElementById("expire_on");
+        const offerPrice = document.getElementById("offer_price");
+        const minimumPrice = document.getElementById("minimum_price");
+
+        // Clear previous errors
+        document.getElementById("name-error").textContent = "";
+        document.getElementById("expireOn-error").textContent = "";
+        document.getElementById("offerPrice-error").textContent = "";
+        document.getElementById("minimumPrice-error").textContent = "";
+
+        // Validate Coupon Name (required)
+        if (name.value.trim() === "") {
+            document.getElementById("name-error").textContent = "Coupon name is required.";
+            isValid = false;
+        }
+
+        // Validate Expiration Date (required and future date)
+        const today = new Date().toISOString().split("T")[0];
+        if (expireOn.value === "" || expireOn.value <= today) {
+            document.getElementById("expireOn-error").textContent = "Please enter a future expiration date.";
+            isValid = false;
+        }
+
+        // Validate Offer Price (required and positive number)
+        if (offerPrice.value === "" || isNaN(offerPrice.value) || offerPrice.value <= 0) {
+            document.getElementById("offerPrice-error").textContent = "Please enter a valid offer price.";
+            isValid = false;
+        }
+
+        // Validate Minimum Price (required and positive number)
+        if (minimumPrice.value === "" || isNaN(minimumPrice.value) || minimumPrice.value <= 0) {
+            document.getElementById("minimumPrice-error").textContent = "Please enter a valid minimum purchase amount.";
+            isValid = false;
+        }
+
+        return isValid;
+    }
+</script>
+
+
+<%- include('../partials/admin/admin-footer.ejs') -%>

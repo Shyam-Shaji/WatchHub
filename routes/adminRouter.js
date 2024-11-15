@@ -6,6 +6,7 @@ const categoryController = require('../controllers/admin/categoryController');
 const brandController = require('../controllers/admin/brandController');
 const productController = require('../controllers/admin/productController');
 const orderlistController = require('../controllers/admin/orderlistController');
+const couponController = require('../controllers/admin/cuponController');
 const {userAuth,adminAuth} = require('../middlewares/auth');
 const multer = require('multer');
 const storage = require('../helpers/multer');
@@ -59,8 +60,16 @@ router.post('/deleteImage',adminAuth,productController.deletSingleImage);
 //orderlist
 router.get('/orderlist',orderlistController.orderList);
 router.post('/orders/update-order-status/:orderId', orderlistController.updateOrderStatus);
-
 //orderlist
+
+//coupon management
+router.get('/coupon-list',adminAuth,couponController.getCuponList);
+router.get('/addCoupon',adminAuth,couponController.getCouponForm);
+router.post('/addCoupon',adminAuth,couponController.createCoupon);
+router.post('/deleteCoupon/:id',adminAuth,couponController.deleteCoupon);
+router.get('/editCoupon/:id',adminAuth,couponController.getEditCouponForm);
+router.post('/updateCoupon/:id',adminAuth,couponController.updateCoupon);
+//coupon management
 
 
 module.exports = router;

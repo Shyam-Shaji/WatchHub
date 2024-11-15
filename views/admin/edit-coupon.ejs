@@ -1,0 +1,65 @@
+<%- include('../partials/admin/admin-header.ejs') -%>
+
+<section class="content-main">
+    <div class="row">
+        <div class="col-9">
+            <div class="content-header">
+                <h2 class="content-title">Edit Coupon</h2>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="post" action="/admin/updateCoupon/<%= coupon._id %>">
+                        <!-- Coupon Name -->
+                        <div class="mb-4">
+                            <label for="coupon_name" class="form-label">Coupon Name</label>
+                            <input type="text" name="name" class="form-control border" id="coupon_name" value="<%= coupon.name %>" required>
+                        </div>
+
+                        <!-- Expiration Date -->
+                        <div class="mb-4">
+                            <label for="expire_on" class="form-label">Expiration Date</label>
+                            <input type="date" name="expireOn" class="form-control border" id="expire_on" value="<%= new Date(coupon.expireOn).toISOString().split('T')[0] %>" required>
+                        </div>
+
+                        <!-- Offer Price -->
+                        <div class="mb-4">
+                            <label for="offer_price" class="form-label">Offer Price</label>
+                            <input type="number" name="offerPrice" class="form-control border" id="offer_price" value="<%= coupon.offerPrice %>" required>
+                        </div>
+
+                        <!-- Minimum Price -->
+                        <div class="mb-4">
+                            <label for="minimum_price" class="form-label">Minimum Purchase Amount</label>
+                            <input type="number" name="minimumPrice" class="form-control border" id="minimum_price" value="<%= coupon.minimumPrice %>" required>
+                        </div>
+
+                        <!-- Is Listed -->
+                        <div class="mb-4">
+                            <label class="form-label">Is Listed</label>
+                            <select class="form-select border" name="isList" id="is_list">
+                                <option value="true" <%= coupon.isList ? 'selected' : '' %>>Yes</option>
+                                <option value="false" <%= !coupon.isList ? 'selected' : '' %>>No</option>
+                            </select>
+                        </div>
+
+                        <!-- User ID (Optional) -->
+                        <div class="mb-4">
+                            <label for="user_id" class="form-label">User ID (Optional)</label>
+                            <input type="text" name="userId" class="form-control border" id="user_id" value="<%= coupon.userId %>">
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div>
+                            <button class="btn btn-md rounded font-sm hover-up" type="submit">Update Coupon</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<%- include('../partials/admin/admin-footer.ejs') -%>
