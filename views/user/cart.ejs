@@ -1,5 +1,64 @@
 <%- include('../partials/user/header.ejs') -%>
 
+<style>
+    .modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.4);
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 40%;
+    border-radius: 10px;
+}
+
+.close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: black;
+    text-decoration: none;
+}
+
+.coupon-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 0 0;
+}
+
+.coupon-list li {
+    padding: 10px;
+    background: #f9f9f9;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.coupon-list li:hover {
+    background-color: #f1f1f1;
+}
+
+</style>
+
 <main class="main">
     <div class="page-header breadcrumb-wrap">
         <div class="container">
@@ -133,20 +192,31 @@
                                 <div class="total-amount">
                                     <div class="left">
                                         <div class="coupon">
-                                            <form action="#" target="_blank">
-                                                <div class="form-row row justify-content-center">
-                                                    <div class="form-group col-lg-6">
-                                                        <input class="font-medium" name="Coupon" placeholder="Enter Your Coupon">
-                                                    </div>
-                                                    <div class="form-group col-lg-6">
-                                                        <button class="btn  btn-sm"><i class="fi-rs-label mr-10"></i>Apply</button>
-                                                    </div>
-                                                </div>
-                                            </form>
+                                            <!-- Apply Coupon Button -->
+                                            <button id="apply-coupon-btn" class="btn btn-primary btn-sm">
+                                                <i class="fi-rs-label mr-10"></i>Apply Coupon
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            
+                            <!-- Coupon Modal -->
+                            <div id="couponModal" class="modal" style="display: none;">
+                                <div class="modal-content">
+                                    <span class="close-btn">&times;</span>
+                                    <h4>Available Coupons</h4>
+                                    <ul id="couponList" class="coupon-list">
+                                        <% coupon.forEach(coupon => { %>
+                                            <li class="coupon-item" data-coupon-code="<%= coupon.code %>">
+                                                <strong><%= coupon.code %></strong> - 
+                                                <%= coupon.discount > 0 ? coupon.discount + '% off' : coupon.description %>
+                                            </li>
+                                        <% }); %>
+                                    </ul>
+                                </div>
+                            </div>
+                            
                         </div>
                         <div class="col-lg-6 col-md-12">
                             <div class="border p-md-4 p-30 border-radius cart-totals">
@@ -329,6 +399,82 @@ document.querySelectorAll('.remove-cart').forEach(button => {
         }
     });
 });
+
+//coupon
+// Show modal and fetch coupons on button click
+document.getElementById('apply-coupon-btn').addEventListener('click', async () => {
+    try {
+        const response = await fetch('/getCoupons'); // API endpoint for fetching coupons
+        const data = await response.json();
+        console.log('Coupons fetched:', data);
+
+        if (data.success) {
+            const couponModal = document.getElementById('couponModal');
+            const couponList = document.getElementById('couponList');
+            couponList.innerHTML = ''; // Clear existing coupons
+
+            // Populate coupons
+            data.coupons.forEach(coupon => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${coupon.code} - ${coupon.offerPrice} off`;
+                listItem.dataset.couponCode = coupon.code;
+                listItem.className = 'coupon-item';
+                couponList.appendChild(listItem);
+            });
+
+            // Show modal
+            couponModal.style.display = 'block';
+
+            // Add click functionality for each coupon
+            document.querySelectorAll('.coupon-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    applyCoupon(item.dataset.couponCode);
+                });
+            });
+        } else {
+            alert('Failed to fetch coupons. Please try again.');
+        }
+    } catch (error) {
+        console.error("Error fetching coupons:", error);
+        alert('An error occurred while fetching coupons.');
+    }
+});
+
+
+// Close modal on button click
+document.querySelector('.close-btn').addEventListener('click', () => {
+    document.getElementById('couponModal').style.display = 'none';
+});
+
+// Apply selected coupon
+async function applyCoupon(couponCode) {
+    try {
+        const response = await fetch('/applyCoupon', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ couponCode }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch coupon data');
+        }
+
+        const data = await response.json();
+        if (data.success) {
+            alert(`Coupon applied successfully! Discount: ${data.discount}`);
+            document.getElementById('couponModal').style.display = 'none';
+            // Update cart totals or UI as needed
+        } else {
+            alert(data.message || 'Failed to apply coupon.');
+        }
+    } catch (error) {
+        console.error("Error applying coupon:", error);
+        alert('An error occurred while applying the coupon.');
+    }
+}
+
+
+
 
 
 </script>

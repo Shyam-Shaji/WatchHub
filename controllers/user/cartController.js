@@ -1,6 +1,8 @@
 const Cart = require('../../models/cartSchema');
 const Product = require('../../models/productSchema');
 const User = require('../../models/userSchema');
+const Coupon = require('../../models/cuponSchema');
+
 
 const addToCart = async (req, res) => {  
     try {
@@ -56,39 +58,33 @@ const addToCart = async (req, res) => {
 
 
 
-const viewCart = async (req, res) => { 
+const viewCart = async (req, res) => {
     try {
         const user = req.session.user;
-        const userData = await User.findOne({_id:user});
-        const userId = req.session.user;
-        if (!userId) {
+
+        if (!user) {
             return res.redirect('/login');
         }
 
-        const cart = await Cart.findOne({ userId }).populate('items.productId');
-
-        console.log('checking image: ',cart);
+        const userData = await User.findOne({ _id: user });
+        const coupon = await Coupon.find({ isActive: true }); // Fetch active coupons
+        const cart = await Cart.findOne({ userId: user }).populate('items.productId');
 
         if (!cart || cart.items.length === 0) {
-            return res.render('cart', { cart, subtotal: 0, shipping: 0, total: 0, user:userData });
+            return res.render('cart', { cart: null, subtotal: 0, shipping: 0, total: 0, user: userData, coupon });
         }
 
-       
         const subtotal = cart.items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-        
-        
-        const shipping = subtotal > 0 ? 5 : 0; 
-
-        
+        const shipping = subtotal > 0 ? 5 : 0;
         const total = subtotal + shipping;
 
-        res.render('cart', { cart, subtotal, shipping, total, user:userData   });
-        
+        res.render('cart', { cart, subtotal, shipping, total, user: userData, coupon });
     } catch (error) {
-        console.error('Error loading cart', error);
+        console.error('Error loading cart:', error);
         res.status(500).send('Server error');
     }
 };
+
 
 
 const removeCart = async (req, res) => {
@@ -154,10 +150,63 @@ const updateQuantity = async (req, res) => {
     }
 };
 
+const getCoupon = async (req, res) => {
+    try {
+        const coupons = await Coupon.find({ 
+            isList: true });
+        console.log('checkign coupon: ', coupons) // Fetch only active coupons
+        res.json({ success: true, coupons });
+    } catch (error) {
+        console.error("Error fetching coupons:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch coupons." });
+    }
+};
+
+const applyCoupon = async (req, res) => {
+    try {
+        const { couponCode } = req.body;
+
+        // Fetch the coupon
+        const coupon = await Coupon.findOne({ code: couponCode, isList: true });
+        if (!coupon) {
+            return res.json({ success: false, message: "Invalid or expired coupon." });
+        }
+
+        const user = req.session.user;
+        const cart = await Cart.findOne({ userId: user });
+
+        if (!cart) {
+            return res.json({ success: false, message: "Cart not found." });
+        }
+
+        // Validate minimum price
+        if (cart.totalPrice < coupon.minimumPrice) {
+            return res.json({
+                success: false,
+                message: `Coupon can only be applied for orders above ${coupon.minimumPrice}.`
+            });
+        }
+
+        // Apply discount
+        const discount = Math.min(coupon.offerPrice, cart.totalPrice); // Avoid negative total
+        cart.discount = discount;
+        cart.totalPrice -= discount;
+        await cart.save();
+
+        res.json({ success: true, discount: discount });
+    } catch (error) {
+        console.error("Error applying coupon: ", error);
+        res.status(500).json({ success: false, message: "Failed to apply coupon." });
+    }
+};
+
+
 
 module.exports = {
     addToCart,
     viewCart,
     removeCart,
     updateQuantity,
+    getCoupon,
+    applyCoupon,
 }
