@@ -10,6 +10,7 @@ const session = require('express-session');
 const passport = require('./config/passport');
 const morgan = require('morgan');
 
+
 app.use(morgan('tiny'))
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));

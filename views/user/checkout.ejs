@@ -141,9 +141,10 @@
                             <h5>Payment</h5>
                             <div class="payment_option">
                                 <div class="custome-radio">
-                                    <input type="radio" class="form-check-input" name="payment_option" id="bank_transfer" required>
-                                    <label class="form-check-label" for="bank_transfer">Razor Pay</label>
+                                    <input type="radio" class="form-check-input" name="payment_option" id="razor_pay" value="razor_pay" required>
+                                    <label class="form-check-label" for="razor_pay">Razor Pay</label>
                                 </div>
+                                
                                 <div class="custome-radio">
                                     <input type="radio" class="form-check-input" name="payment_option" id="cash_on_delivery" required>
                                     <label class="form-check-label" for="cash_on_delivery">Cash on Delivery</label>
@@ -184,59 +185,154 @@
 
 
 <script>
-     document.querySelector(".btn-fill-out").addEventListener("click", async function(event) {
-        event.preventDefault(); // Prevent traditional form submission
+    //  document.querySelector(".btn-fill-out").addEventListener("click", async function(event) {
+    //     event.preventDefault(); // Prevent traditional form submission
         
-        // Get selected address and payment option
-        const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked');
-        const paymentOption = document.querySelector('input[name="payment_option"]:checked');
+    //     // Get selected address and payment option
+    //     const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked');
+    //     const paymentOption = document.querySelector('input[name="payment_option"]:checked');
 
-        // Validate selections
-        if (!selectedAddress || !paymentOption) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Missing Information',
-                text: 'Please select both an address and a payment method.'
-            });
-            return;
-        }
+    //     // Validate selections
+    //     if (!selectedAddress || !paymentOption) {
+    //         Swal.fire({
+    //             icon: 'warning',
+    //             title: 'Missing Information',
+    //             text: 'Please select both an address and a payment method.'
+    //         });
+    //         return;
+    //     }
 
-        try {
-            // AJAX request to place the order
-            const response = await fetch('/place-order', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
+    //     try {
+    //         // AJAX request to place the order
+    //         const response = await fetch('/place-order', {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json'
+    //             },
+    //             body: JSON.stringify({
+    //                 selectedAddress: selectedAddress.value,
+    //                 payment_option: paymentOption.id
+    //             })
+    //         });
+
+    //         const result = await response.json();
+
+    //         if (result.success) {
+    //             // Show the confirmation modal on successful order placement
+    //             $('#orderConfirmationModal').modal('show');
+    //         } else {
+    //             // Show error message using SweetAlert
+    //             Swal.fire({
+    //                 icon: 'error',
+    //                 title: 'Order Failed',
+    //                 text: 'Failed to place the order: ' + result.message
+    //             });
+    //         }
+    //     } catch (error) {
+    //         console.error('Error placing order:', error);
+    //         // Show error message using SweetAlert
+    //         Swal.fire({
+    //             icon: 'error',
+    //             title: 'Error',
+    //             text: 'There was an error placing your order. Please try again.'
+    //         });
+    //     }
+    // });
+
+    document.querySelector(".btn-fill-out").addEventListener("click", async function(event) {
+    event.preventDefault();
+
+    const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked');
+    const paymentOption = document.querySelector('input[name="payment_option"]:checked');
+
+    if (!selectedAddress || !paymentOption) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing Information',
+            text: 'Please select both an address and a payment method.'
+        });
+        return;
+    }
+
+    try {
+        // Create the order on the server
+        const response = await fetch('/place-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                selectedAddress: selectedAddress.value,
+                payment_option: paymentOption.id
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success && paymentOption.id === 'razor_pay') {
+            const order = result.order;
+
+            // Fetch Razorpay key dynamically
+            const keyResponse = await fetch('/get-razorpay-key');
+            const { key: razorpayKey } = await keyResponse.json();
+
+            const options = {
+                key: razorpayKey,
+                amount: order.amount,
+                currency: order.currency,
+                name: 'Your Shop Name',
+                description: 'Order Payment',
+                order_id: order.id,
+                handler: async function(response) {
+                    const verifyResponse = await fetch('/verify-payment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature
+                        })
+                    });
+
+                    const verifyResult = await verifyResponse.json();
+                    if (verifyResult.success) {
+                        $('#orderConfirmationModal').modal('show');
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Payment Verification Failed',
+                            text: verifyResult.message
+                        });
+                    }
                 },
-                body: JSON.stringify({
-                    selectedAddress: selectedAddress.value,
-                    payment_option: paymentOption.id
-                })
-            });
+                prefill: {
+                    name: "Your Customer Name",
+                    email: "customer@example.com",
+                    contact: "9999999999"
+                },
+                theme: { color: "#3399cc" }
+            };
 
-            const result = await response.json();
-
-            if (result.success) {
-                // Show the confirmation modal on successful order placement
-                $('#orderConfirmationModal').modal('show');
-            } else {
-                // Show error message using SweetAlert
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Order Failed',
-                    text: 'Failed to place the order: ' + result.message
-                });
-            }
-        } catch (error) {
-            console.error('Error placing order:', error);
-            // Show error message using SweetAlert
+            const rzp = new Razorpay(options);
+            rzp.open();
+        } else if (result.success) {
+            $('#orderConfirmationModal').modal('show');
+        } else {
             Swal.fire({
                 icon: 'error',
-                title: 'Error',
-                text: 'There was an error placing your order. Please try again.'
+                title: 'Order Failed',
+                text: 'Failed to place the order: ' + result.message
             });
         }
-    });
+    } catch (error) {
+        console.error('Error placing order:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'There was an error placing your order. Please try again.'
+        });
+    }
+});
+
+
 </script>
 
 

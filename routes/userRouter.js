@@ -8,6 +8,7 @@ const wishlistController = require('../controllers/user/wishlisControllert');
 const cartController = require('../controllers/user/cartController');
 const shopController = require('../controllers/user/shopController');
 const checkoutController = require('../controllers/user/checkoutController');
+const razorypayController = require('../controllers/user/razorpayController');
 const passport = require('passport');
 const auth = require('../middlewares/auth');
 
@@ -79,11 +80,18 @@ router.get('/loadShopPage',shopController.loadShopPage);
 //order
 router.get('/orders', orderController.viewOrder);
 router.post('/cancel-order/:orderId',orderController.orderCancell);
+
 //order
 
 //checkout
 router.get('/checkoutPage',checkoutController.checkoutPage);
 router.post('/place-order',checkoutController.placeOrder);
 //checkout
+
+//razorpay
+router.post('/create-order',razorypayController.createOrder);
+router.post('/verify-payment',razorypayController.verifyPayment);
+router.get('/get-razorpay-key',razorypayController.getRazorpayKey);
+//razorpay
 
 module.exports = router;

@@ -32,7 +32,6 @@ const viewOrder = async (req, res) => {
 };
 
 
-
 const orderCancell = async (req, res) => {
     const { orderId } = req.params;
     try {

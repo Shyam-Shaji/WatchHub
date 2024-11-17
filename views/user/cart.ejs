@@ -463,7 +463,7 @@ async function applyCoupon(couponCode) {
         if (data.success) {
             alert(`Coupon applied successfully! Discount: ${data.discount}`);
             document.getElementById('couponModal').style.display = 'none';
-            // Update cart totals or UI as needed
+            
         } else {
             alert(data.message || 'Failed to apply coupon.');
         }
@@ -472,10 +472,6 @@ async function applyCoupon(couponCode) {
         alert('An error occurred while applying the coupon.');
     }
 }
-
-
-
-
 
 </script>
 
