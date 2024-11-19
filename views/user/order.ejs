@@ -24,6 +24,11 @@
                                     <p>Order Date: <%= order.orderDate.toDateString() %></p>
                                     <p id="status-<%= order.orderId %>">Status: <%= order.status %></p>
 
+                                    <% if (order.paymentMethod === 'Razorpay') { %>
+                                        <p><strong>Razorpay Order ID:</strong> <%= order.razorpay_order_id %></p>
+                                        <p><strong>Razorpay Payment ID:</strong> <%= order.razorpay_payment_id %></p>
+                                    <% } %>
+
                                     <!-- Display Address Information -->
                                     <table class="table">
                                         <thead>
@@ -46,7 +51,6 @@
                                         </tbody>
                                     </table>
 
-                                    <!-- Order Items Table -->
                                     <!-- Order Items Table -->
                                     <table class="table mt-3">
                                         <thead>
@@ -99,6 +103,7 @@
         </div>
     </section>
 </main>
+
 
 <script>
     // JavaScript function to handle order cancellation

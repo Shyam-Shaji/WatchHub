@@ -180,7 +180,7 @@
         </div>
     </div>
 </div>
-
+<input type="hidden" id="cartId" value="<%=cartId%>">
 </main>
 
 
@@ -239,13 +239,14 @@
     //     }
     // });
 
-    document.querySelector(".btn-fill-out").addEventListener("click", async function(event) {
+    document.querySelector(".btn-fill-out").addEventListener("click", async function (event) {
     event.preventDefault();
 
     const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked');
     const paymentOption = document.querySelector('input[name="payment_option"]:checked');
+    const  cartId = document.getElementById('cartId').value;
 
-    if (!selectedAddress || !paymentOption) {
+    if (!selectedAddress || !paymentOption || !cartId) {
         Swal.fire({
             icon: 'warning',
             title: 'Missing Information',
@@ -255,82 +256,209 @@
     }
 
     try {
-        // Create the order on the server
         const response = await fetch('/place-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 selectedAddress: selectedAddress.value,
-                payment_option: paymentOption.id
+                payment_option: paymentOption.id,
+                cartId,
             })
         });
 
         const result = await response.json();
+        console.log('checking result : ', result);
+        if (!result.success) throw new Error(result.message);
 
-        if (result.success && paymentOption.id === 'razor_pay') {
+        if (paymentOption.id === 'razor_pay') {
             const order = result.order;
+            console.log('checking razorpay order: ',order);
+            if (!order || !order.amount || !order.currency || !order.id) throw new Error('Invalid order details');
 
-            // Fetch Razorpay key dynamically
             const keyResponse = await fetch('/get-razorpay-key');
             const { key: razorpayKey } = await keyResponse.json();
+            if (!razorpayKey) throw new Error('Missing Razorpay key');
 
             const options = {
                 key: razorpayKey,
                 amount: order.amount,
                 currency: order.currency,
-                name: 'Your Shop Name',
+                name: order.customerName || 'Your Shop Name',
                 description: 'Order Payment',
                 order_id: order.id,
-                handler: async function(response) {
-                    const verifyResponse = await fetch('/verify-payment', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature
-                        })
-                    });
+                handler: async function (response) {
+                    try {
+                        const verifyResponse = await fetch('/verify-payment', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(response)
+                        });
 
-                    const verifyResult = await verifyResponse.json();
-                    if (verifyResult.success) {
+                        const verifyResult = await verifyResponse.json();
+                        if (!verifyResult.success) throw new Error(verifyResult.message);
+
+                        const createOrderResponse = await fetch('/createOrder', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                address: selectedAddress.value,
+                                paymentMethod: 'Razor Pay',
+                                items: cartItems,
+                                couponCode: result.couponCode
+                            })
+                        });
+
+                        const createOrderResult = await createOrderResponse.json();
+                        if (!createOrderResult.success) throw new Error(createOrderResult.message);
+
                         $('#orderConfirmationModal').modal('show');
-                    } else {
+                    } catch (error) {
                         Swal.fire({
                             icon: 'error',
-                            title: 'Payment Verification Failed',
-                            text: verifyResult.message
+                            title: 'Payment Error',
+                            text: error.message
                         });
                     }
                 },
                 prefill: {
-                    name: "Your Customer Name",
-                    email: "customer@example.com",
-                    contact: "9999999999"
+                    name: order.customerName || 'Guest User',
+                    email: order.customerEmail || '',
+                    contact: order.customerContact || ''
                 },
-                theme: { color: "#3399cc" }
+                theme: { color: '#3399cc' }
             };
 
             const rzp = new Razorpay(options);
             rzp.open();
-        } else if (result.success) {
-            $('#orderConfirmationModal').modal('show');
         } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Order Failed',
-                text: 'Failed to place the order: ' + result.message
-            });
+            $('#orderConfirmationModal').modal('show');
         }
     } catch (error) {
-        console.error('Error placing order:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'There was an error placing your order. Please try again.'
+            text: error.message
         });
     }
 });
+
+
+
+
+
+
+// document.querySelector(".btn-fill-out").addEventListener("click", async function (event) {
+//     event.preventDefault();
+
+//     const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked');
+//     const paymentOption = document.querySelector('input[name="payment_option"]:checked');
+
+//     if (!selectedAddress || !paymentOption) {
+//         Swal.fire({
+//             icon: 'warning',
+//             title: 'Missing Information',
+//             text: 'Please select both an address and a payment method.'
+//         });
+//         return;
+//     }
+
+//     try {
+//         const response = await fetch('/place-order', {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json' },
+//             body: JSON.stringify({
+//                 selectedAddress: selectedAddress.value,
+//                 payment_option: paymentOption.id
+//             })
+//         });
+
+//         if (!response.ok) throw new Error('Failed to place the order');
+//         const result = await response.json();
+
+//         if (result.success && result.paymentMethod === 'Razor Pay') {
+//             const order = result.order;
+
+//             if (!order || !order.amount || !order.currency || !order.id) {
+//                 Swal.fire({
+//                     icon: 'error',
+//                     title: 'Order Error',
+//                     text: 'Invalid order details received from the server.'
+//                 });
+//                 return;
+//             }
+
+//             const keyResponse = await fetch('/get-razorpay-key');
+//             if (!keyResponse.ok) throw new Error('Failed to fetch Razorpay key');
+//             const { key: razorpayKey } = await keyResponse.json();
+
+//             const options = {
+//                 key: razorpayKey,
+//                 amount: order.amount,
+//                 currency: order.currency,
+//                 name: 'Watch Hub',
+//                 description: 'Order Payment',
+//                 order_id: order.id,
+//                 handler: async function (response) {
+//                     try {
+//                         const verifyResponse = await fetch('/verify-payment', {
+//                             method: 'POST',
+//                             headers: { 'Content-Type': 'application/json' },
+//                             body: JSON.stringify(response)
+//                         });
+
+//                         if (!verifyResponse.ok) throw new Error('Payment verification failed');
+//                         const verifyResult = await verifyResponse.json();
+
+//                         if (verifyResult.success) {
+//                             $('#orderConfirmationModal').modal('show');
+//                         } else {
+//                             Swal.fire({
+//                                 icon: 'error',
+//                                 title: 'Payment Verification Failed',
+//                                 text: verifyResult.message
+//                             });
+//                         }
+//                     } catch (error) {
+//                         console.error('Error during payment verification:', error);
+//                         Swal.fire({
+//                             icon: 'error',
+//                             title: 'Error',
+//                             text: 'An error occurred during payment verification.'
+//                         });
+//                     }
+//                 },
+//                 prefill: {
+//                     name: 'Shyam',
+//                     email: 'shyamshaji42@gmail.com',
+//                     contact: '8888'
+//                 },
+//                 theme: { color: '#3399cc' }
+//             };
+
+//             const rzp = new Razorpay(options);
+//             rzp.open();
+//         } else if (result.success) {
+//             $('#orderConfirmationModal').modal('show');
+//         } else {
+//             Swal.fire({
+//                 icon: 'error',
+//                 title: 'Order Failed',
+//                 text: result.message
+//             });
+//         }
+//     } catch (error) {
+//         console.error('Error:', error);
+//         Swal.fire({
+//             icon: 'error',
+//             title: 'Error',
+//             text: 'An error occurred. Please try again.'
+//         });
+//     }
+// });
+
+
+
+
 
 
 </script>
