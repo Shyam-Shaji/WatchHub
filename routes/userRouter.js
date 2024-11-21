@@ -89,9 +89,11 @@ router.get('/checkoutPage',checkoutController.checkoutPage);
 router.post('/place-order',checkoutController.placeOrder);
 //checkout
 
+
+router.post('/verify-payment',razorypayController.verifyPayment);
+
 //razorpay
 router.post('/create-order',razorypayController.createOrder);
-router.post('/verify-payment',razorypayController.verifyPayment);
 router.get('/get-razorpay-key',razorypayController.getRazorpayKey);
 //razorpay
 

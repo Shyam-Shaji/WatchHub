@@ -8,22 +8,6 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-const createOrder = async (req, res) => {
-    const { amount } = req.body;
-    try {
-        const options = { 
-            amount: amount * 100, 
-            currency: 'INR', 
-            receipt: `receipt_${Math.random()}`,
-        };
-
-        const Order = await razorpay.orders.create(options); 
-        res.json({ success: true, Order });
-    } catch (error) {
-        console.error("Error creating Razorpay order: ", error);
-        res.status(500).json({ success: false, message: "Failed to create Razorpay order" });
-    }
-};
 
 const verifyPayment = (req, res) => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
@@ -41,6 +25,23 @@ const verifyPayment = (req, res) => {
 };
 
 
+//remove
+const createOrder = async (req, res) => {
+    const { amount } = req.body;
+    try {
+        const options = { 
+            amount: amount * 100, 
+            currency: 'INR', 
+            receipt: `receipt_${Math.random()}`,
+        };
+
+        const Order = await razorpay.orders.create(options); 
+        res.json({ success: true, Order });
+    } catch (error) {
+        console.error("Error creating Razorpay order: ", error);
+        res.status(500).json({ success: false, message: "Failed to create Razorpay order" });
+    }
+};
 
 // Endpoint to send Razorpay key to the client-side securely
 const getRazorpayKey = (req, res) => {

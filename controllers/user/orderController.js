@@ -1,7 +1,16 @@
 const Order = require('../../models/orderSchema');
 const User = require('../../models/userSchema');
 const Product = require('../../models/productSchema');
+const Cart = require('../../models/cartSchema');
 const { applyCoupon } = require('./cartController');
+
+const Razorpay = require('razorpay');
+require('dotenv').config();
+
+const razorpayInstance = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 // const viewOrder = async (req, res) => {
 //     try {
@@ -82,39 +91,32 @@ const viewOrder = async (req, res) => {
 
 const createOrder = async (req, res) => {
     try {
-        const { address, paymentMethod, items, couponCode } = req.body;
+        const { address, paymentMethod, items, order_id, couponCode } = req.body;
         const userId = req.session.user;
 
         if (!userId) {
             return res.status(401).json({ success: false, message: "User not authenticated" });
         }
 
-        const validatedItems = [];
-        let totalAmount = 0;
-
-        // Validate cart items and calculate total amount
-        for (const item of items) {
-            const product = await Product.findById(item.product);
-            if (!product) {
-                return res.status(404).json({ success: false, message: `Product not found: ${item.product}` });
-            }
-            if (item.quantity > product.quantity) {
-                return res.status(400).json({
-                    success: false,
-                    message: `Insufficient stock for product: ${product.productName}`,
-                });
-            }
-
-            const itemTotalPrice = item.quantity * product.price;
-            validatedItems.push({
-                product: product._id,
-                quantity: item.quantity,
-                price: product.price,
-                totalPrice: itemTotalPrice,
-            });
-
-            totalAmount += itemTotalPrice;
+        if (!items || items.length === 0) {
+            return res.status(400).json({ success: false, message: "No items provided" });
         }
+
+        // Map items to validate them
+        const validatedItems = items.map((item) => ({
+            product: item.product,
+            quantity: item.quantity,
+            price: item.price,
+            totalPrice: item.totalPrice,
+        }));
+
+        console.log('checking validate : ',validatedItems);
+
+        // Calculate the total amount
+        let totalAmount = 0;
+        validatedItems.forEach((item) => {
+            totalAmount += item.totalPrice;
+        });
 
         // Apply coupon if available
         let couponApplied = false;
@@ -126,18 +128,6 @@ const createOrder = async (req, res) => {
             }
         }
 
-        // Razorpay Order ID creation
-        let razorpayOrderId = null;
-        if (paymentMethod === 'Razor Pay') {
-            const razorpayOrder = await razorpayInstance.orders.create({
-                amount: totalAmount * 100, // Convert to paise
-                currency: 'INR',
-                receipt: `order_rcptid_${Date.now()}`,
-            });
-
-            razorpayOrderId = razorpayOrder.id;
-        }
-
         // Save the new order
         const newOrder = new Order({
             userId,
@@ -146,7 +136,7 @@ const createOrder = async (req, res) => {
             items: validatedItems,
             totalAmount,
             couponApplied,
-            razorpayOrderId,
+            razorpayOrderId: order_id,
             status: paymentMethod === 'Razor Pay' ? 'Pending' : 'Confirmed',
         });
 
@@ -159,19 +149,22 @@ const createOrder = async (req, res) => {
             });
         }
 
+        await Cart.findOneAndDelete({userId : req.session.user })
+
         return res.status(201).json({
             success: true,
-            message: 'Order created successfully',
+            message: "Order created successfully",
             order: newOrder,
         });
     } catch (error) {
-        console.error('Error creating order:', error);
+        console.error("Error creating order:", error);
         res.status(500).json({
             success: false,
-            message: 'Failed to create order. Please try again later.',
+            message: "Failed to create order. Please try again later.",
         });
     }
 };
+
 
 
 

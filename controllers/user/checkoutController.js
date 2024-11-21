@@ -8,7 +8,7 @@ const Razorpay = require('razorpay');
 require('dotenv').config();
 const crypto = require('crypto');
 
-const razorpay = new Razorpay({
+const razorpayInstance = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
@@ -230,21 +230,17 @@ const checkoutPage = async (req, res) => {
 
 const placeOrder = async (req, res) => {
     try {
-        const { selectedAddress, payment_option, cartId } = req.body;
+        const { selectedAddress, payment_option } = req.body;
         const userId = req.session.user;
 
         if (!userId) {
             return res.status(401).json({ success: false, message: "User not authenticated" });
         }
 
-        if(!cartId || !payment_option || !selectedAddress ){
-            console.log('validating cartId payemtoption selectedaddress',cartId,payment_option,selectedAddress)
-            return res.status(401).json({success: false, message:"Not "});
+        if( !payment_option || !selectedAddress ){
+            console.log('validating cartId payemtoption selectedaddress',payment_option,selectedAddress)
+            return res.status(401).json({success: false, message:"Not found"});
         }
-
-
-
-
 
         // const cartItems = req.session.cartItems || [];
         // console.log('Session Cart Items:', cartItems);
@@ -286,7 +282,8 @@ const placeOrder = async (req, res) => {
 
         const address = userAddress.address[0];
 
-        const userCart = await Cart.findById(cartId)
+        const userCart = await Cart.findOne({userId : req.session.user })
+
 
         if (!userCart) {
             return res.status(400).json({ success: false, message: 'Cart not found' });
@@ -308,7 +305,7 @@ const placeOrder = async (req, res) => {
 
         if (paymentMethod === 'Razor Pay') {
             try {
-                const razorpayOrder = await razorpay.orders.create({
+                const razorpayOrder = await razorpayInstance.orders.create({
                     amount: totalAmount * 100, // Convert to paise
                     currency: 'INR',
                     receipt: `receipt_${Date.now()}`,
@@ -317,8 +314,10 @@ const placeOrder = async (req, res) => {
                 return res.json({
                     success: true,
                     order: razorpayOrder,
+                    razorpayKeyId : process.env.RAZORPAY_KEY_ID,
                     address,
                     paymentMethod,
+                    items : item,
                     couponCode: req.body.couponCode || null,
                 });
             } catch (razorPayError) {
@@ -341,8 +340,6 @@ const placeOrder = async (req, res) => {
         console.log('Order created:', order);
 
         await Cart.updateOne({ userId }, { $set: { items: [] } });
-        req.session.cartItems = [];
-        req.session.totalAmount = 0;
 
         return res.json({
             success: true,
@@ -354,6 +351,8 @@ const placeOrder = async (req, res) => {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
+
+
 
 
 

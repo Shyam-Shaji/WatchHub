@@ -180,7 +180,6 @@
         </div>
     </div>
 </div>
-<input type="hidden" id="cartId" value="<%=cartId%>">
 </main>
 
 
@@ -244,9 +243,9 @@
 
     const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked');
     const paymentOption = document.querySelector('input[name="payment_option"]:checked');
-    const  cartId = document.getElementById('cartId').value;
+ 
 
-    if (!selectedAddress || !paymentOption || !cartId) {
+    if (!selectedAddress || !paymentOption ) {
         Swal.fire({
             icon: 'warning',
             title: 'Missing Information',
@@ -262,7 +261,6 @@
             body: JSON.stringify({
                 selectedAddress: selectedAddress.value,
                 payment_option: paymentOption.id,
-                cartId,
             })
         });
 
@@ -275,15 +273,15 @@
             console.log('checking razorpay order: ',order);
             if (!order || !order.amount || !order.currency || !order.id) throw new Error('Invalid order details');
 
-            const keyResponse = await fetch('/get-razorpay-key');
-            const { key: razorpayKey } = await keyResponse.json();
-            if (!razorpayKey) throw new Error('Missing Razorpay key');
+            // const keyResponse = await fetch('/get-razorpay-key');
+            // const { key: razorpayKey } = await keyResponse.json();
+            // if (!razorpayKey) throw new Error('Missing Razorpay key');
 
             const options = {
-                key: razorpayKey,
+                key: result.razorpayKeyId,
                 amount: order.amount,
                 currency: order.currency,
-                name: order.customerName || 'Your Shop Name',
+                name: "Shaji's Time",
                 description: 'Order Payment',
                 order_id: order.id,
                 handler: async function (response) {
@@ -295,6 +293,8 @@
                         });
 
                         const verifyResult = await verifyResponse.json();
+                        console.log("verifyResult is ",verifyResult);
+                        
                         if (!verifyResult.success) throw new Error(verifyResult.message);
 
                         const createOrderResponse = await fetch('/createOrder', {
@@ -303,8 +303,8 @@
                             body: JSON.stringify({
                                 address: selectedAddress.value,
                                 paymentMethod: 'Razor Pay',
-                                items: cartItems,
-                                couponCode: result.couponCode
+                                items: result.items,
+                                order_id: order.id,
                             })
                         });
 
