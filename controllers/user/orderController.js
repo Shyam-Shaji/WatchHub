@@ -2,6 +2,8 @@ const Order = require('../../models/orderSchema');
 const User = require('../../models/userSchema');
 const Product = require('../../models/productSchema');
 const Cart = require('../../models/cartSchema');
+const mongoose = require('mongoose');
+const {Types} = require('mongoose');
 const { applyCoupon } = require('./cartController');
 
 const Razorpay = require('razorpay');
@@ -165,25 +167,59 @@ const createOrder = async (req, res) => {
     }
 };
 
+// const orderCancell = async (req, res) => {
+//     const { orderId } = req.params;
 
+//     try {
+//         const order = await Order.findByIdAndUpdate(
+//             orderId,
+//             { status: 'Cancelled' },
+//             { new: true }
+//         );
 
+//         if (!order) {
+//             return res.status(404).json({ success: false, message: 'Order not found' });
+//         }
 
+//         for (const item of order.items) {
+//             await Product.findByIdAndUpdate(
+//                 item.product,
+//                 { $inc: { quantity: item.quantity } }
+//             );
+//         }
 
+//         res.json({
+//             success: true,
+//             message: 'Order cancelled successfully and product quantities updated.'
+//         });
+
+//     } catch (error) {
+//         console.error('Error cancelling order: ', error);
+//         res.status(500).json({
+//             success: false,
+//             message: 'An error occurred while cancelling the order.'
+//         });
+//     }
+// };
 
 const orderCancell = async (req, res) => {
-    const { orderId } = req.params;
+    const { orderId } = req.params; 
 
     try {
-        const order = await Order.findByIdAndUpdate(
-            orderId,
+        const order = await Order.findOneAndUpdate(
+            { orderId }, 
             { status: 'Cancelled' },
             { new: true }
         );
 
         if (!order) {
-            return res.status(404).json({ success: false, message: 'Order not found' });
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Order not found' 
+            });
         }
 
+        
         for (const item of order.items) {
             await Product.findByIdAndUpdate(
                 item.product,
@@ -193,17 +229,17 @@ const orderCancell = async (req, res) => {
 
         res.json({
             success: true,
-            message: 'Order cancelled successfully and product quantities updated.'
+            message: 'Order cancelled successfully and product quantities updated.',
         });
-
     } catch (error) {
         console.error('Error cancelling order: ', error);
         res.status(500).json({
             success: false,
-            message: 'An error occurred while cancelling the order.'
+            message: 'An error occurred while cancelling the order.',
         });
     }
 };
+
 
 
 module.exports = {
