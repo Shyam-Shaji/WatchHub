@@ -60,7 +60,12 @@ router.post('/deleteImage',adminAuth,productController.deletSingleImage);
 //orderlist
 router.get('/orderlist',orderlistController.orderList);
 router.post('/orders/update-order-status/:orderId', orderlistController.updateOrderStatus);
+router.post('/orders/approve-return/:id',orderlistController.returnApprove);
 //orderlist
+
+//return order list
+router.get('/returnList',orderlistController.returnOrderList);
+//return order list
 
 //coupon management
 router.get('/coupon-list',adminAuth,couponController.getCuponList);

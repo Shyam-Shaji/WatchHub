@@ -23,6 +23,17 @@
     </div>
 </div> -->
 
+<style>
+    .mr-10 {
+    margin-right: 10px;
+}
+.wallet-icon {
+    font-size: 1.5em; /* Adjust icon size */
+    color: #555; /* Adjust icon color */
+}
+
+</style>
+
 
 <div class="col-md-4">
     <div class="dashboard-menu">
@@ -34,7 +45,9 @@
                 <a class="nav-link" id="orders-tab"  href="/orders"  aria-controls="orders" aria-selected="false"><i class="fi-rs-shopping-bag mr-10"></i>Orders</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="track-orders-tab" data-bs-toggle="tab" href="#track-orders"  aria-controls="track-orders" aria-selected="false"><i class="fi-rs-shopping-cart-check mr-10"></i>Track Your Order</a>
+                <a class="nav-link" id="wallet-tab"  href="/wallet"  aria-controls="wallet" aria-selected="false">
+                    <i class="fas fa-wallet wallet-icon mr-10"></i> Wallet
+                </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" id="address-tab" href="/showAddress"  aria-controls="address" aria-selected="true"><i class="fi-rs-marker mr-10"></i>My Address</a>

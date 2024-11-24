@@ -3,6 +3,7 @@ const router = express.Router();
 const userController = require('../controllers/user/userController');
 const profileController = require('../controllers/user/profileController');
 const orderController = require('../controllers/user/orderController');
+const walletController = require('../controllers/user/walletController');
 const addressController = require('../controllers/user/addressController');
 const wishlistController = require('../controllers/user/wishlisControllert');
 const cartController = require('../controllers/user/cartController');
@@ -81,8 +82,12 @@ router.get('/loadShopPage',shopController.loadShopPage);
 router.get('/orders', orderController.viewOrder);
 router.post('/createOrder',orderController.createOrder);
 router.post('/cancel-order/:orderId',orderController.orderCancell);
-
+router.post('/return-order/:orderId',orderController.returnOrder);
 //order
+
+//wallet 
+router.get('/wallet',auth.userAuth,walletController.getWallet);
+//wallet
 
 //checkout
 router.get('/checkoutPage',checkoutController.checkoutPage);

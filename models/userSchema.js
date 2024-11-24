@@ -34,14 +34,14 @@ const userSchema = new Schema({
         type : Boolean,
         default : false,
     },
-    // cart : [{
-    //     type : Schema.Types.ObjectId,
-    //     ref : "Cart",
-    // }],
-    // wallet: [{
-    //     type : Schema.Types.ObjectId,
-    //     ref : "Wishlist",
-    // }],
+    cart : [{
+        type : Schema.Types.ObjectId,
+        ref : "Cart",
+    }],
+    wallet: [{
+        type : Schema.Types.ObjectId,
+        ref : "Wallet",
+    }],
     // wishlist : {
     //     type : Schema.Types.ObjectId,
     //     ref: "Wishlist"

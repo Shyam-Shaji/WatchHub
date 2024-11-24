@@ -13,7 +13,7 @@ const orderList = async (req, res) => {
             .limit(limit)
             .skip(skip);
 
-        // Get total number of orders to calculate total pages
+        
         const totalOrders = await Order.countDocuments();
         const totalPages = Math.ceil(totalOrders / limit);
 
@@ -28,36 +28,101 @@ const orderList = async (req, res) => {
     }
 };
 
+
+// const updateOrderStatus = async (req, res) => {
+//     try {
+//         const { orderId } = req.params;
+//         const { status } = req.body;
+//         const { page = 1 } = req.query;  // Get the current page from query params
+
+//         const order = await Order.findByIdAndUpdate(orderId, { status }, { new: true });
+
+//         if (!order) {
+//             return res.status(404).json({ success: false, message: 'Order not found' });
+//         }
+
+//         // If the order is cancelled, provide a redirect URL
+//         if (status === 'Cancelled') {
+//             return res.redirect('/admin/orderlist');
+//         }
+
+//         // For other status updates, send a JSON success response
+//         res.json({ success: true, message: 'Order status updated', order });
+//     } catch (error) {
+//         console.error('Error updating order status:', error);
+//         res.status(500).json({ success: false, message: 'Failed to update order status' });
+//     }
+// };
+
 const updateOrderStatus = async (req, res) => {
     try {
         const { orderId } = req.params;
         const { status } = req.body;
-        const { page = 1 } = req.query;  // Get the current page from query params
 
+        if (!status) {
+            return res.status(400).json({
+                success: false,
+                message: 'Status is required.',
+            });
+        }
+
+        // Update the order status in the database
         const order = await Order.findByIdAndUpdate(orderId, { status }, { new: true });
 
         if (!order) {
-            return res.status(404).json({ success: false, message: 'Order not found' });
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found.',
+            });
         }
 
-        // If the order is cancelled, provide a redirect URL
-        if (status === 'Cancelled') {
-            return res.json({ success: true, redirect: `/admin/orderlist?page=${page}` });
-        }
-
-        // For other status updates, send a JSON success response
-        res.json({ success: true, message: 'Order status updated', order });
+        res.json({
+            success: true,
+            message: `Order status updated to ${status}.`,
+            order,
+        });
     } catch (error) {
         console.error('Error updating order status:', error);
-        res.status(500).json({ success: false, message: 'Failed to update order status' });
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update order status.',
+        });
     }
 };
 
+const returnOrderList = async(req,res)=>{
+    try {
+
+        const returnedOrders = await Order.find({returnedStatus:{$in:['Requested', 'Approved']}});
+        res.render('return-orders',{
+            orders: returnedOrders,
+            currentPage: req.query.page || 1,
+            totalPages: Math.ceil(returnedOrders.length / 10),
+        })
+        
+    } catch (error) {
+        console.error('Error fetching return order: ',error);
+        res.status(500).send('Internel server error');
+    }
+}
+
+const returnApprove = async(req,res)=>{
+    const orderId = req.params.id;
+    try {
+        await Order.findByIdAndUpdate(orderId,{ returnStatus: 'Approved' });
+        res.redirect('/admin/orderlist');
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error approving return');
+    }
+}
 
 
 
 
 module.exports = {
     orderList,
-    updateOrderStatus
+    updateOrderStatus,
+    returnOrderList,
+    returnApprove,
 };

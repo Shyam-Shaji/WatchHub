@@ -60,11 +60,17 @@ const orderSchema = new Schema({
         enum: ["Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Return Request", "Returned"],
         default: "Pending",
     },
+    returnStatus: { // Global return status for the order
+        type: String,
+        enum: ["Not Requested", "Requested", "Approved", "Rejected"],
+        default: "Not Requested",
+    },
     couponApplied: {
         type: Boolean,
         default: false,
     }
 });
+
 
 const Order = mongoose.model("Order", orderSchema);
 module.exports = Order;

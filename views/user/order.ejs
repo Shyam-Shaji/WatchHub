@@ -234,41 +234,47 @@
 
     // Submit the return request
     function submitReturn() {
-        const orderId = document.getElementById('orderId').value;
-        const reason = document.getElementById('returnReason').value;
+    const orderId = document.getElementById('orderId').value.trim();
+    const reason = document.getElementById('returnReason').value.trim();
 
-        if (!reason.trim()) {
-            alert('Please provide a reason for return.');
-            return;
-        }
+    if (!orderId) {
+        alert('Order ID is missing. Please try again.');
+        return;
+    }
 
-        // Send return request to the server
-        fetch(`/return-order/${orderId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ reason })
-        })
-        .then(response => response.json())
-        .then(data => {
+    if (!reason) {
+        alert('Please provide a reason for return.');
+        return;
+    }
+
+    fetch(`/return-order/${orderId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reason }),
+    })
+        .then((response) => response.json())
+        .then((data) => {
             if (data.success) {
                 alert('Your return request has been submitted.');
-                location.reload(); // Reload the page
+                location.reload(); // Reload the page to reflect changes
             } else {
-                alert('Could not process the return request.');
+                alert(data.message || 'Could not process the return request.');
             }
         })
-        .catch(error => {
+        .catch((error) => {
             console.error('Error:', error);
             alert('Something went wrong. Please try again.');
         });
 
-        // Close the modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('returnModal'));
-        modal.hide();
+    // Close the modal after submitting
+    const modalElement = document.getElementById('returnModal');
+    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+    if (modalInstance) {
+        modalInstance.hide();
     }
-
+}
 </script>
 
 <%- include('../partials/user/footer.ejs') %>  
