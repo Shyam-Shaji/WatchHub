@@ -162,9 +162,48 @@ const getCoupon = async (req, res) => {
     }
 };
 
+// const applyCoupon = async (req, res) => {
+//     try {
+//         const { couponCode } = req.body;
+
+//         // Fetch the coupon
+//         const coupon = await Coupon.findOne({ code: couponCode, isList: true });
+//         if (!coupon) {
+//             return res.json({ success: false, message: "Invalid or expired coupon." });
+//         }
+
+//         const user = req.session.user;
+//         const cart = await Cart.findOne({ userId: user });
+
+//         if (!cart) {
+//             return res.json({ success: false, message: "Cart not found." });
+//         }
+
+//         // Validate minimum price
+//         if (cart.totalPrice < coupon.minimumPrice) {
+//             return res.json({
+//                 success: false,
+//                 message: `Coupon can only be applied for orders above ${coupon.minimumPrice}.`
+//             });
+//         }
+
+//         // Apply discount
+//         const discount = Math.min(coupon.offerPrice, cart.totalPrice); // Avoid negative total
+//         cart.discount = discount;
+//         cart.totalPrice -= discount;
+//         await cart.save();
+
+//         res.json({ success: true, discount: discount });
+//     } catch (error) {
+//         console.error("Error applying coupon: ", error);
+//         res.status(500).json({ success: false, message: "Failed to apply coupon." });
+//     }
+// };
+
 const applyCoupon = async (req, res) => {
     try {
         const { couponCode } = req.body;
+        console.log('Received couponCode:', couponCode);
 
         // Fetch the coupon
         const coupon = await Coupon.findOne({ code: couponCode, isList: true });
@@ -173,13 +212,18 @@ const applyCoupon = async (req, res) => {
         }
 
         const user = req.session.user;
-        const cart = await Cart.findOne({ userId: user });
+        if (!user) {
+            return res.json({ success: false, message: "User session not found. Please log in." });
+        }
 
+        const cart = await Cart.findOne({ userId: user });
         if (!cart) {
             return res.json({ success: false, message: "Cart not found." });
         }
 
-        // Validate minimum price
+        console.log('Cart details:', cart);
+
+        
         if (cart.totalPrice < coupon.minimumPrice) {
             return res.json({
                 success: false,
@@ -187,18 +231,19 @@ const applyCoupon = async (req, res) => {
             });
         }
 
-        // Apply discount
-        const discount = Math.min(coupon.offerPrice, cart.totalPrice); // Avoid negative total
+        
+        const discount = Math.min(coupon.offerPrice, cart.totalPrice); 
         cart.discount = discount;
-        cart.totalPrice -= discount;
+        cart.totalPrice = Math.max(0, cart.totalPrice - discount); 
         await cart.save();
 
-        res.json({ success: true, discount: discount });
+        res.json({ success: true, discount });
     } catch (error) {
         console.error("Error applying coupon: ", error);
         res.status(500).json({ success: false, message: "Failed to apply coupon." });
     }
 };
+
 
 
 

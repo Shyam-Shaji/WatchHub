@@ -116,7 +116,7 @@
                                             </td>
                                             <!-- Subtotal -->
                                             <td class="text-right" data-title="Cart">
-                                                <span id="subtotal-<%= item.productId._id %>">$<%= (item.quantity * item.price).toFixed(2) %></span>
+                                                <span id="subtotal-<%= item.productId._id %>">₹<%= (item.quantity * item.price).toFixed(2) %></span>
                                             </td>
                                             <!-- Remove Button -->
                                             <td class="action" data-title="Remove">
@@ -427,10 +427,40 @@ document.getElementById('apply-coupon-btn').addEventListener('click', async () =
 
             // Add click functionality for each coupon
             document.querySelectorAll('.coupon-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    applyCoupon(item.dataset.couponCode);
-                });
+    item.addEventListener('click', async () => {
+        const couponCode = item.dataset.couponCode; // Fetch coupon code
+        console.log('Selected Coupon Code:', couponCode); // Debugging log
+
+        if (!couponCode) {
+            alert('Coupon code is missing. Please try again.');
+            return;
+        }
+
+        // Rest of the fetch request logic
+        try {
+            const applyResponse = await fetch('/applyCoupon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ couponCode }),
             });
+
+            const applyData = await applyResponse.json();
+            if (applyData.success) {
+                alert(`Coupon applied! Discount: ${applyData.discount}`);
+                document.getElementById('couponModal').style.display = 'none';
+            } else {
+                alert(applyData.message);
+            }
+        } catch (err) {
+            console.error('Error applying coupon:', err);
+            alert('Failed to apply coupon. Please try again.');
+        }
+    });
+});
+
+
         } else {
             alert('Failed to fetch coupons. Please try again.');
         }
@@ -439,6 +469,7 @@ document.getElementById('apply-coupon-btn').addEventListener('click', async () =
         alert('An error occurred while fetching coupons.');
     }
 });
+
 
 
 // Close modal on button click

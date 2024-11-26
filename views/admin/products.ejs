@@ -1,5 +1,21 @@
 <%- include('../partials/admin/admin-header.ejs') %>
 
+<style>
+    .action-buttons {
+    display: flex;
+    justify-content: end;
+    flex-wrap: wrap;
+    gap: 8px; /* Adjust spacing as needed */
+}
+
+.btn-equal {
+    width: 100px; /* Set a uniform width */
+    text-align: center; /* Center-align the text inside buttons */
+}
+
+
+</style>
+
 <head>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
 </head>
@@ -54,26 +70,43 @@
                                     </td>
                                     <td><%= data[i].quantity %></td>
                                     <td class="text-end">
-                                        <div class="dropdown">
-                                            <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
-                                                <i class="material-icons md-more_horiz"></i>
+                                        <div class="d-flex justify-content-end flex-wrap gap-2">
+                                            <!-- Edit button -->
+                                            <a href="/admin/editProduct?id=<%= data[i]._id %>" class="btn btn-primary btn-sm btn-equal">
+                                                Edit
                                             </a>
-                                            <div class="dropdown-menu">
-                                                <a class="dropdown-item" href="/admin/editProduct?id=<%= data[i]._id %>">Edit info</a>
-                                                <% if(data[i].isBlocked === false) {%>
-                                                <a class="dropdown-item" href="/admin/blockProduct?id=<%= data[i]._id %>">Block</a>
-                                                    <% }else {%>
-                                                <a class="dropdown-item" href="/admin/unblockProduct?id=<%= data[i]._id %>">Unblock</a>
-                                                <% } %>
-                                                <% if(data[i].productOffer === 0) { %>
-                                                    <a class="dropdown-item" href="javascript:void(0);" onclick="addOffer('<%= data[i]._id %>')">Add Offer</a>
-                                                <% } else { %>
-                                                    <a class="dropdown-item" href="javascript:void(0);" onclick="removeOffer('<%= data[i]._id %>')">Remove Offer</a>
-                                                <% } %>
-                                                <a class="dropdown-item text-danger" href="#">Delete</a>
-                                            </div>
+                                            
+                                            <!-- Block/Unblock button -->
+                                            <% if(data[i].isBlocked === false) { %>
+                                            <a href="/admin/blockProduct?id=<%= data[i]._id %>" class="btn btn-warning btn-sm btn-equal">
+                                                Block
+                                            </a>
+                                            <% } else { %>
+                                            <a href="/admin/unblockProduct?id=<%= data[i]._id %>" class="btn btn-success btn-sm btn-equal">
+                                                Unblock
+                                            </a>
+                                            <% } %>
+                                            
+                                            <!-- Add/Remove Offer button -->
+                                            <% if(data[i].productOffer === 0) { %>
+                                            <button class="btn btn-info btn-sm btn-equal" onclick="addOffer('<%= data[i]._id %>')">
+                                                Add Offer
+                                            </button>
+                                            <% } else { %>
+                                            <button class="btn btn-secondary btn-sm btn-equal" onclick="removeOffer('<%= data[i]._id %>')">
+                                                Remove Offer
+                                            </button>
+                                            <% } %>
+                                            
+                                            <!-- Delete button -->
+                                            <button class="btn btn-danger btn-sm btn-equal" onclick="confirmDelete('<%= data[i]._id %>')">
+                                                Delete
+                                            </button>
                                         </div>
                                     </td>
+                                    
+                                    
+                                    
                                 </tr>
                                 <% } %>
                             </tbody>
@@ -119,29 +152,48 @@ async function addOffer(productId) {
         showCancelButton: true,
     });
 
-    if (amount) {
-        $.ajax({
-            url: '/admin/addProductOffer', 
-            method: 'POST',
-            data: {
-                percentage: amount,
-                productId: productId,
-            },
-            success: (response) => {
-                if (response.status === true) {
-                    Swal.fire('Offer added', 'The offer has been added successfully', 'success').then(() => {
-                        location.reload();  
-                    });
-                } else {
-                    Swal.fire('Error', response.message || 'Failed to add the offer', 'error');
-                }
-            },
-            error: (err) => {
-                Swal.fire('Error', 'Something went wrong', 'error');
-            }
-        });
+    if (!amount) {
+        Swal.fire('Cancelled', 'No offer was added.', 'info');
+        return;
     }
+
+    if (amount < 1 || amount > 100) {
+        Swal.fire('Invalid Input', 'Please enter a percentage between 1 and 100.', 'error');
+        return;
+    }
+
+    Swal.fire({
+        title: 'Adding offer...',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        },
+    });
+
+    $.ajax({
+        url: '/admin/addProductOffer',
+        method: 'POST',
+        data: {
+            percentage: amount,
+            productId: productId,
+        },
+        success: (response) => {
+            Swal.close();
+            if (response.status === true) {
+                Swal.fire('Offer added', 'The offer has been added successfully', 'success').then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire('Error', response.message || 'Failed to add the offer', 'error');
+            }
+        },
+        error: (err) => {
+            Swal.close();
+            Swal.fire('Error', 'Something went wrong', 'error');
+        }
+    });
 }
+
 
 
     function removeOffer(productId){

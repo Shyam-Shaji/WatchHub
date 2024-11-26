@@ -72,18 +72,18 @@ const loadHomePage = async (req, res) => {
             quantity: { $gt: 0 }
         }).limit(12);
 
-        // Sorting products by createdAt date in descending order
+        
         productData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        productData = productData // Limiting to 4 latest products
+        productData = productData
 
         if (user) {
             const userData = await User.findOne({ _id: user });
             console.log('Checking userData: ', userData);
 
-            // If user data is found, render with user
+           
             res.render('home', { user: userData, products: productData });
         } else {
-            // Render without user if not logged in
+            
             return res.render('home', { products: productData, user: null });
         }
     } catch (error) {
@@ -115,14 +115,14 @@ const loadHomePage = async (req, res) => {
 // }
 
 async function generateOtp () {
-    console.log("OTP generation function called."); // Added log to check function call
+    console.log("OTP generation function called."); 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log("Generated OTP:", otp); // Added log to check generated OTP
+    console.log("Generated OTP:", otp);
     return otp;
 }
 async function sendVerificationEmail(email, otp) {
     try {
-        console.log("Sending OTP to email:", email); // Log email
+        console.log("Sending OTP to email:", email);
 
         const transporter = nodemail.createTransport({
             service: 'gmail',
@@ -143,7 +143,7 @@ async function sendVerificationEmail(email, otp) {
             html: `<b>Your OTP is ${otp}</b>`,
         });
 
-        console.log("Email sent:", info); // Log info about email
+        console.log("Email sent:", info); 
         return info.accepted.length > 0;
 
     } catch (error) {
@@ -157,35 +157,35 @@ const signup = async(req, res) => {
     try {
         const { name, phone, email, password, password_confirm } = req.body;
 
-        // Check if passwords match
+       
         if (password !== password_confirm) {
             return res.render("signup", { message: "Passwords do not match" });
         }
 
-        // Check if user already exists
+       
         const findUser = await User.findOne({ email: email });
         if (findUser) {
             return res.render('signup', { message: "User with this email already exists" });
         }
 
-        // Generate OTP 
+        
         const otp = await generateOtp();
        
 
-        // Send OTP  email
+       
         const emailSent = await sendVerificationEmail(email, otp);
         if (!emailSent) {
             return res.json("Error in sending OTP via email");
         }
 
         
-        // Save OTP and user data in to  session
+       
         req.session.userOtp = otp;
         req.session.userData = { name, phone, email, password };
        
 
 
-        // Redirect to OTP verification page
+       
         console.log("OTP Sent:", otp);
         res.render('verify-otp');
 

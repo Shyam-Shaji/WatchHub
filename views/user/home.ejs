@@ -96,13 +96,13 @@
                           <h5 class="card-title">
                               <a href="/productDetails/<%= products[i]._id %>" class="text-dark"><%= products[i].productName %></a>
                           </h5>
-                          <div class="rating-result" title="<%= products[i].rating %>%">
-                              <span><%= products[i].rating %>%</span>
+                          <div class="rating-result" title="<%= products[i].productOffer  %>%">
+                              <span><%= products[i].productOffer %>%</span>
                           </div>
                           <div class="product-price">
-                              <span class="text-success">$<%= products[i].salePrice %></span>
+                              <span class="text-success">₹<%= products[i].salePrice %></span>
                               <% if (products[i].salePrice < products[i].originalPrice) { %>
-                                  <span class="text-muted text-decoration-line-through">$<%= products[i].originalPrice %></span>
+                                  <span class="text-muted text-decoration-line-through">₹<%= products[i].originalPrice %></span>
                               <% } %>
                           </div>
                           <!-- Add To Cart Button -->

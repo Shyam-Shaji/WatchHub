@@ -13,7 +13,7 @@ function generateOtp(){
     return otp;
 }
 
-const sendVerificationEmail = async (email, otp) => { // Fix: Added parameters for email and otp
+const sendVerificationEmail = async (email, otp) => { 
     try {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
@@ -69,7 +69,7 @@ const forgotEmailValid = async (req, res) => {
         const findUser = await User.findOne({ email: email });
         if (findUser) {
             const otp = generateOtp();
-            const emailSent = await sendVerificationEmail(email, otp); // Fix: Passed email and otp as arguments
+            const emailSent = await sendVerificationEmail(email, otp); 
             if (emailSent) {
                 req.session.userOtp = otp;
                 req.session.email = email;

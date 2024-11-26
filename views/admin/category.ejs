@@ -80,25 +80,35 @@
                                             <% } %>
                                     </td>
                                     <td class="text-end">
-                                        <div class="dropdown">
-                                            <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm"> <i class="material-icons md-more_horiz"></i> </a>
-                                            <div class="dropdown-menu">
-                                                <a class="dropdown-item" href="#">View detail</a>
-                                                <a class="dropdown-item" href="/admin/editCategory?id=<%= category._id %>">Edit info</a>
-                                                <a class="dropdown-item text-danger" href="#">Delete</a>
-                                                <% if(category.isListed) {%>
-                                                <a class="dropdown-item text-danger" href="/admin/listCategory?id=<%=category._id%>">Unlist</a>
-                                                <% }else {%>
-                                                    <a class="dropdown-item text-danger" href="/admin/unlistCategory?id=<%=category._id%>">List</a>
-                                                    <% } %>
-                                                <% if(category.categoryOffer === 0){ %>
-                                                <a class="dropdown-item" href="#" onclick="addOffer('<%=category._id%>')">Add Offer</a>
-                                                <% }else{ %>
-                                                    <a class="dropdown-item" href="#" onclick="removeOffer('<%=category._id%>')">Remove Offer</a>
-                                                <% } %>
-                                            </div>
-                                        </div> <!-- dropdown //end -->
+                                        <div class="d-flex justify-content-end flex-wrap gap-2">
+                                            <!-- View Detail Button -->
+                                            
+                                    
+                                            <!-- Edit Info Button -->
+                                            <a class="btn btn-sm btn-primary" href="/admin/editCategory?id=<%= category._id %>">Edit Info</a>
+                                    
+                                            <!-- Delete Button -->
+                                            <a class="btn btn-sm btn-danger" href="#">Delete</a>
+                                    
+                                            <% if(category.isListed) { %>
+                                                <!-- Unlist Button -->
+                                                <a class="btn btn-sm btn-warning text-white" href="/admin/listCategory?id=<%=category._id%>">Unlist</a>
+                                            <% } else { %>
+                                                <!-- List Button -->
+                                                <a class="btn btn-sm btn-success" href="/admin/unlistCategory?id=<%=category._id%>">List</a>
+                                            <% } %>
+                                    
+                                            <% if(category.categoryOffer === 0) { %>
+                                                <!-- Add Offer Button -->
+                                                <button class="btn btn-sm btn-secondary" onclick="addOffer('<%=category._id%>')">Add Offer</button>
+                                            <% } else { %>
+                                                <!-- Remove Offer Button -->
+                                                <button class="btn btn-sm btn-dark" onclick="removeOffer('<%=category._id%>')">Remove Offer</button>
+                                            <% } %>
+                                        </div>
                                     </td>
+                                    
+                                    
                                 </tr>
                                 <% }) %>
                             </tbody>
@@ -188,49 +198,62 @@
     }
 
     async function addOffer(categoryId) {
-        const { value: amount } = await Swal.fire({
-            title: "Offer in percentage",
-            input: "number",
-            inputLabel: "Percentage",
-            inputPlaceholder: "%",
-        });
+    const { value: amount } = await Swal.fire({
+        title: "Offer in percentage",
+        input: "number",
+        inputLabel: "Percentage",
+        inputPlaceholder: "%",
+        inputAttributes: {
+            min: 1,
+            max: 100,
+            step: 1,
+        },
+        validationMessage: "Please enter a valid percentage between 1 and 100",
+    });
 
-        if (amount) {
-            try {
-                const response = await fetch('/admin/addCategoryOffer', {
-                    method: 'POST',
-                    headers: {
-                        'content-type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        percentage: amount,
-                        categoryId: categoryId,
-                    }),
-                });
+    if (amount) {
+        const percentage = parseInt(amount);
+        if (percentage < 1 || percentage > 100) {
+            Swal.fire("Invalid Input", "Offer must be between 1% and 100%", "warning");
+            return;
+        }
 
-                const data = await response.json();
-                if (response.ok && data.status === true) {
-                    Swal.fire(
-                        "Offer added",
-                        "The offer has been added",
-                        "success",
-                    ).then(() => {
-                        location.reload();
-                    });
-                } else {
-                    Swal.fire("Failed", data.message || "Adding offer failed", "error");
-                }
+        try {
+            const response = await fetch('/admin/addCategoryOffer', {
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/json',
+                },
+                body: JSON.stringify({
+                    percentage: percentage,
+                    categoryId: categoryId,
+                }),
+            });
 
-            } catch (error) {
+            const data = await response.json();
+            if (response.ok && data.status === true) {
                 Swal.fire(
-                    'Error',
-                    'An error occurred while adding the offer',
-                    'error',
-                );
-                console.log("Error adding offer", error);
+                    "Offer added",
+                    "The offer has been added successfully",
+                    "success",
+                ).then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire("Failed", data.message || "Adding offer failed", "error");
             }
+
+        } catch (error) {
+            Swal.fire(
+                'Error',
+                'An error occurred while adding the offer',
+                'error',
+            );
+            console.log("Error adding offer", error);
         }
     }
+}
+
 
     async function removeOffer(categoryId) {
         try {

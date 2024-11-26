@@ -93,6 +93,7 @@
                             <% }) %>
                         </div>
                     <% } %>
+                    <a href="/add-address" class="btn btn-primary">Add Address</a>
                 </div>
 
                 <!-- Order Review and Payment Section -->
@@ -117,12 +118,12 @@
                                                 <h5><%= item.productName %></h5>
                                                 <span class="product-qty">x <%= item.quantity %></span>
                                             </td>
-                                            <td>$<%= item.totalPrice %></td>
+                                            <td>₹<%= item.totalPrice %></td>
                                         </tr>
                                     <% }) %>
                                     <tr>
                                         <th>SubTotal</th>
-                                        <td colspan="2">$<%= totalAmount %></td>
+                                        <td colspan="2">₹<%= totalAmount %></td>
                                     </tr>
                                     <tr>
                                         <th>Shipping</th>
@@ -130,7 +131,7 @@
                                     </tr>
                                     <tr>
                                         <th>Total</th>
-                                        <td colspan="2"><span class="font-xl text-brand fw-900">$<%= totalAmount %></span></td>
+                                        <td colspan="2"><span class="font-xl text-brand fw-900">₹<%= totalAmount %></span></td>
                                     </tr>
                                 </tbody>
                             </table>

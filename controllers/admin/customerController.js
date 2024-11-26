@@ -16,7 +16,7 @@ const customerInfo = async (req, res) => {
         const userData = await User.find({
             isAdmin: false,
             $or: [
-                { name: { $regex: ".*" + search + ".*", $options: 'i' } }, // Case insensitive search
+                { name: { $regex: ".*" + search + ".*", $options: 'i' } }, 
                 { email: { $regex: ".*" + search + ".*", $options: 'i' } }
             ]
         })
@@ -34,7 +34,7 @@ const customerInfo = async (req, res) => {
 
         const totalPages = Math.ceil(count / limit);
 
-        // Pass variables to the EJS template
+        
         res.render('customers', {
             userData: userData,
             currentPage: page,

@@ -22,10 +22,10 @@ const Wallet = require('../../models/walletSchema');
 
 const getWallet = async (req, res) => {
     try {
-        // Retrieve the user ID from the session
+        
         const user = req.session.user;
 
-        // Check if the session user exists
+        
         if (!user) {
             return res.status(401).json({
                 success: false,
@@ -33,7 +33,7 @@ const getWallet = async (req, res) => {
             });
         }
 
-        // Retrieve user data
+       
         const userData = await User.findById({_id:user});
         if (!userData) {
             return res.status(404).json({
@@ -42,10 +42,10 @@ const getWallet = async (req, res) => {
             });
         }
 
-        // Fetch the wallet associated with the user
+       
         let wallet = await Wallet.findOne({ userId: user });
 
-        // If wallet doesn't exist, create a default one
+        
         if (!wallet) {
             wallet = await Wallet.create({
                 userId: user,
@@ -54,11 +54,25 @@ const getWallet = async (req, res) => {
             });
         }
 
-        // Pass the user and wallet data to the view
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const totalTransactions = wallet.transactions.length;
+
+        const paginatedTranscations = wallet.transactions.slice(skip, skip + limit);
+
+        const totalPages = Math.ceil(totalTransactions / limit);
+
+        
+
+       
         return res.render('wallet', {
             user : userData,
             walletBalance: wallet.walletBalance,
-            transactions: wallet.transactions,
+            transactions: paginatedTranscations,
+            currentPage : page,
+            totalPages : totalPages,
         });
     } catch (error) {
         console.error('Error rendering wallet page:', error);

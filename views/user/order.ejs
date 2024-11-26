@@ -130,23 +130,56 @@
                                                 </td>
                                                 <td><strong>$<%= order.totalAmount %></strong></td>
                                                 <td>
-                                                    <% if (order.status !== 'Cancelled' && order.status !== 'Returned') { %>
-                                                        <button class="btn btn-sm btn-danger mb-2" onclick="cancelOrder('<%= order.orderId %>')">
-                                                            Cancel
-                                                        </button>
+                                                    <% if (order.status === 'Completed') { %>
+                                                        <!-- Show Return Button if status is 'Completed' -->
                                                         <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#returnModal" data-order-id="<%= order.orderId %>">
                                                             Return
                                                         </button>
-                                                    <% } else if (order.status === 'Returned') { %>
-                                                        <span class="text-muted">Returned</span>
+                                                    <% } else if (order.status !== 'Cancelled' && order.status !== 'Returned') { %>
+                                                        <!-- Show Cancel Button for all other statuses except 'Cancelled' and 'Returned' -->
+                                                        <button class="btn btn-sm btn-danger mb-2" onclick="cancelOrder('<%= order.orderId %>')">
+                                                            Cancel
+                                                        </button>
                                                     <% } else { %>
-                                                        <span class="text-muted">Cancelled</span>
+                                                        <!-- Show status as text if the order is 'Cancelled' or 'Returned' -->
+                                                        <span class="text-muted"><%= order.status %></span>
                                                     <% } %>
                                                 </td>
+                                                
                                             </tr>
                                         <% }) %>
                                     </tbody>
                                 </table>
+
+                                <% if (totalPages > 1) { %>
+                                    <nav aria-label="Page navigation example">
+                                        <ul class="pagination justify-content-center">
+                                            <% if (currentPage > 1) { %>
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?page=<%= currentPage - 1 %>" aria-label="Previous">
+                                                        <span aria-hidden="true">&laquo;</span>
+                                                    </a>
+                                                </li>
+                                            <% } %>
+                                            
+                                            <% for (let i = 1; i <= totalPages; i++) { %>
+                                                <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                                                    <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                                                </li>
+                                            <% } %>
+                                            
+                                            <% if (currentPage < totalPages) { %>
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?page=<%= currentPage + 1 %>" aria-label="Next">
+                                                        <span aria-hidden="true">&raquo;</span>
+                                                    </a>
+                                                </li>
+                                            <% } %>
+                                        </ul>
+                                    </nav>
+                                <% } %>
+                                
+
                             </div>
                         <% } else { %>
                             <p class="text-center">No orders found.</p>
@@ -156,6 +189,7 @@
             </div>
         </div>
     </section>
+    
 
     <!-- Return Modal -->
     <div class="modal fade" id="returnModal" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
@@ -182,6 +216,11 @@
         </div>
     </div>
 </main>
+
+
+
+
+
 
 
 <script>

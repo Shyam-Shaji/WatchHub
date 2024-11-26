@@ -43,7 +43,7 @@ const createOrder = async (req, res) => {
     }
 };
 
-// Endpoint to send Razorpay key to the client-side securely
+
 const getRazorpayKey = (req, res) => {
     const razorpayKey = process.env.RAZORPAY_KEY_ID;
 

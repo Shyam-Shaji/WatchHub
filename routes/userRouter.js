@@ -71,7 +71,7 @@ router.post('/removeFromCart',cartController.removeCart);
 router.get('/updateQuantity',cartController.updateQuantity);
 
 router.get('/getCoupons',cartController.getCoupon);
-router.get('/applyCoupon',cartController.applyCoupon);
+router.post('/applyCoupon',cartController.applyCoupon);
 //cart management
 
 //Shop controller

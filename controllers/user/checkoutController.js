@@ -306,7 +306,7 @@ const placeOrder = async (req, res) => {
         if (paymentMethod === 'Razor Pay') {
             try {
                 const razorpayOrder = await razorpayInstance.orders.create({
-                    amount: totalAmount * 100, // Convert to paise
+                    amount: totalAmount * 100, 
                     currency: 'INR',
                     receipt: `receipt_${Date.now()}`,
                 });

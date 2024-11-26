@@ -131,13 +131,13 @@ const addProductOffer = async (req, res) => {
             return res.json({ status: false, message: "This product category already has a better offer" });
         }
 
-        // Update salePrice based on regularPrice and the percentage discount
+       
         findProduct.salePrice = findProduct.regularPrice - Math.floor(findProduct.regularPrice * (percentage / 100));
         findProduct.productOffer = parseInt(percentage, 10);
 
         await findProduct.save();
 
-        // Reset category offer if product offer is higher
+       
         findCategory.categoryOffer = 0;
         await findCategory.save();
 
@@ -159,7 +159,7 @@ const removeProductOffer = async (req, res) => {
 
         const percentage = findProduct.productOffer;
 
-        // Recalculate salePrice to remove the offer
+       
         findProduct.salePrice = findProduct.regularPrice + Math.floor(findProduct.regularPrice * (percentage / 100));
         findProduct.productOffer = 0;
 
@@ -266,25 +266,36 @@ const editProduct = async(req,res)=>{
     }
 }
 
-const deletSingleImage = async(req,res)=>{
+const deletSingleImage = async (req, res) => {
     try {
+        const { imageNameToServer, productIdToServer } = req.body;
 
-        const {imageNameToServer,productIdToServer} = req.body;
-        const product = await Product.findByIdAndUpdate(productIdToServer,{$pull:{productImage:imageNameToServer}});
-        const imagePath = path.join('public','uploads','re-image',imageNameToServer);
-        if(fs.existsSync(imagePath)){
+        
+        await Product.findByIdAndUpdate(productIdToServer, {
+            $pull: { productImage: imageNameToServer }
+        });
+
+        
+        const imagePath = path.join('public', 'uploads', 're-image', imageNameToServer);
+
+        
+        if (fs.existsSync(imagePath)) {
             await fs.unlinkSync(imagePath);
-            console.log(`Image ${imageNameToServer} delete successfully`);
-        }else{
-            console.log(`Image ${imageNameToServer} not found`);
+            console.log(`Image ${imageNameToServer} deleted successfully.`);
+        } else {
+            console.log(`Image ${imageNameToServer} not found.`);
         }
 
-        res.send({status:true});
         
+        res.json({ status: true });
     } catch (error) {
-        res.redirect('/admin/pageError');
+        console.error('Error deleting image:', error);
+
+        
+        res.json({ status: false, error: 'An error occurred while deleting the image.' });
     }
-}
+};
+
 
 module.exports = {
     getProductAddPage,

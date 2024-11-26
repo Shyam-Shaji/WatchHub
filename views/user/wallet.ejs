@@ -27,7 +27,7 @@
                                             <h5 class="mb-0">Wallet Balance</h5>
                                         </div>
                                         <div class="card-body">
-                                            <h3><strong>$<%= walletBalance %></strong></h3>
+                                            <h3><strong>₹<%= walletBalance %></strong></h3>
                                             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#depositModal">Deposit</button>
                                             <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#withdrawModal">Withdraw</button>
                                         </div>
@@ -63,9 +63,28 @@
                                                             </tr>
                                                         <% }) %>
                                                     <% } %>
-                                                </tbody>                                                
-                                                
+                                                </tbody>
                                             </table>
+                                            <!-- Pagination Controls -->
+                                            <nav>
+                                                <ul class="pagination justify-content-center">
+                                                    <% if (currentPage > 1) { %>
+                                                        <li class="page-item">
+                                                            <a class="page-link" href="?page=<%= currentPage - 1 %>&limit=10">Previous</a>
+                                                        </li>
+                                                    <% } %>
+                                                    <% for (let i = 1; i <= totalPages; i++) { %>
+                                                        <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                                                            <a class="page-link" href="?page=<%= i %>&limit=10"><%= i %></a>
+                                                        </li>
+                                                    <% } %>
+                                                    <% if (currentPage < totalPages) { %>
+                                                        <li class="page-item">
+                                                            <a class="page-link" href="?page=<%= currentPage + 1 %>&limit=10">Next</a>
+                                                        </li>
+                                                    <% } %>
+                                                </ul>
+                                            </nav>
                                         </div>
                                     </div>
                                 </div>
@@ -77,6 +96,7 @@
         </div>
     </section>
 </main>
+
 
 <!-- Deposit Modal -->
 <div class="modal fade" id="depositModal" tabindex="-1" aria-labelledby="depositModalLabel" aria-hidden="true">

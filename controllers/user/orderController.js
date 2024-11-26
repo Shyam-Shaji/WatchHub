@@ -28,9 +28,18 @@ const viewOrder = async (req, res) => {
             return res.redirect('/login');
         }
 
+        const page = parseInt(req.query.page) || 1;
+        const limit = 5; // Number of orders per page
+        const skip = (page - 1) * limit;
+
+        const totalOrders = await Order.countDocuments({ userId });
+        const totalPages = Math.ceil(totalOrders / limit);
+
         const orders = await Order.find({ userId })
             .populate('items.product', 'productImage productName')
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
 
         const razorpayOrders = orders.filter(order => order.paymentMethod === 'Razor Pay');
 
@@ -38,12 +47,15 @@ const viewOrder = async (req, res) => {
             orders,
             razorpayOrders,
             user: userData,
+            currentPage: page,
+            totalPages,
         });
     } catch (error) {
         console.error('Error fetching orders:', error);
         res.render('order', { orderStatus: 'Failed to load order details', orders: [] });
     }
 };
+
 
 
 
@@ -257,7 +269,7 @@ const returnOrder = async (req, res) => {
             });
         }
 
-        const order = await Order.findOne({ orderId }); // Adjusted to match `orderId` field in schema.
+        const order = await Order.findOne({ orderId }); 
 
         if (!order) {
             return res.status(404).json({
@@ -273,9 +285,9 @@ const returnOrder = async (req, res) => {
             });
         }
 
-        // Update the order
+        
         order.status = 'Returned';
-        order.returnReason = reason; // Add a field for returnReason in your schema if it doesn't exist.
+        order.returnReason = reason; 
         order.returnDate = new Date();
 
         await order.save();
@@ -283,7 +295,7 @@ const returnOrder = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: 'Order return request processed successfully.',
-            order, // Optional: Return updated order for client-side use.
+            order, 
         });
     } catch (error) {
         console.error('Error processing return order:', error);

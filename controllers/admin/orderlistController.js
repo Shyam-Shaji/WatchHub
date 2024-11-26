@@ -2,11 +2,11 @@ const Order = require('../../models/orderSchema');
 
 const orderList = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1; // Current page number
-        const limit = 20; // Orders per page
+        const page = parseInt(req.query.page) || 1; 
+        const limit = 20;
         const skip = (page - 1) * limit;
 
-        // Fetch orders with pagination and populate necessary fields
+        
         const orders = await Order.find()
             .populate('userId', 'name email')
             .populate('items.product')
@@ -66,7 +66,7 @@ const updateOrderStatus = async (req, res) => {
             });
         }
 
-        // Update the order status in the database
+       
         const order = await Order.findByIdAndUpdate(orderId, { status }, { new: true });
 
         if (!order) {

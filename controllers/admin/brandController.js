@@ -46,11 +46,11 @@ const addBrand = async(req,res)=>{
     }
 }
 
-// Blocking a brand
+
 const blockBrand = async (req, res) => {
     try {
       const id = req.query.id;
-      await Brand.updateOne({ _id: id }, { $set: { isBlocked: true } });  // Use isBlocked here
+      await Brand.updateOne({ _id: id }, { $set: { isBlocked: true } });  
       res.redirect('/admin/brands');
     } catch (error) {
       console.error("Error blocking brand:", error);
@@ -58,11 +58,11 @@ const blockBrand = async (req, res) => {
     }
   };
   
-  // Unblocking a brand
+  
   const unBlockBrand = async (req, res) => {
     try {
       const id = req.query.id;
-      await Brand.updateOne({ _id: id }, { $set: { isBlocked: false } }); // Use isBlocked here
+      await Brand.updateOne({ _id: id }, { $set: { isBlocked: false } }); 
       res.redirect('/admin/brands');
     } catch (error) {
       console.error("Error unblocking brand:", error);
