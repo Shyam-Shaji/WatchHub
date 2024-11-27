@@ -404,6 +404,7 @@ document.querySelectorAll('.remove-cart').forEach(button => {
 // Show modal and fetch coupons on button click
 document.getElementById('apply-coupon-btn').addEventListener('click', async () => {
     try {
+        // Fetch coupons from the server
         const response = await fetch('/getCoupons'); // API endpoint for fetching coupons
         const data = await response.json();
         console.log('Coupons fetched:', data);
@@ -413,62 +414,70 @@ document.getElementById('apply-coupon-btn').addEventListener('click', async () =
             const couponList = document.getElementById('couponList');
             couponList.innerHTML = ''; // Clear existing coupons
 
-            // Populate coupons
+            // Populate the coupon list
             data.coupons.forEach(coupon => {
+                console.log('Coupon data:', coupon); // Log the entire coupon object
+
                 const listItem = document.createElement('li');
-                listItem.textContent = `${coupon.code} - ${coupon.offerPrice} off`;
-                listItem.dataset.couponCode = coupon.code;
+                // Assuming coupon.name is the code (adjust as necessary)
+                const couponCode = coupon.name; // or coupon.code if that's the correct field
+                listItem.textContent = `${couponCode} - ${coupon.offerPrice} off`;
+                console.log('Coupon code being set:', couponCode); // Debugging log
+                listItem.dataset.couponCode = couponCode; // Set coupon code as a data attribute
                 listItem.className = 'coupon-item';
                 couponList.appendChild(listItem);
             });
 
-            // Show modal
+            // Show the coupon modal
             couponModal.style.display = 'block';
 
             // Add click functionality for each coupon
             document.querySelectorAll('.coupon-item').forEach(item => {
-    item.addEventListener('click', async () => {
-        const couponCode = item.dataset.couponCode; // Fetch coupon code
-        console.log('Selected Coupon Code:', couponCode); // Debugging log
+                item.addEventListener('click', async () => {
+                    const couponCode = item.dataset.couponCode; // Fetch coupon code
+                    console.log('Selected Coupon Code:', couponCode); // Debugging log
 
-        if (!couponCode) {
-            alert('Coupon code is missing. Please try again.');
-            return;
-        }
+                    if (!couponCode) {
+                        alert('Coupon code is missing. Please try again.');
+                        return;
+                    }
 
-        // Rest of the fetch request logic
-        try {
-            const applyResponse = await fetch('/applyCoupon', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ couponCode }),
+                    // Apply coupon logic
+                    try {
+                        const applyResponse = await fetch('/applyCoupon', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ couponCode }),
+                        });
+
+                        const applyData = await applyResponse.json();
+                        console.log('Apply Coupon Response:', applyData); // Debugging log
+
+                        if (applyData.success) {
+                            alert(`Coupon applied! Discount: ${applyData.discount}`);
+                            couponModal.style.display = 'none'; // Close the modal
+                        } else {
+                            alert(applyData.message); // Show error message
+                        }
+                    } catch (err) {
+                        console.error('Error applying coupon:', err);
+                        alert('Failed to apply coupon. Please try again.');
+                    }
+                });
             });
-
-            const applyData = await applyResponse.json();
-            if (applyData.success) {
-                alert(`Coupon applied! Discount: ${applyData.discount}`);
-                document.getElementById('couponModal').style.display = 'none';
-            } else {
-                alert(applyData.message);
-            }
-        } catch (err) {
-            console.error('Error applying coupon:', err);
-            alert('Failed to apply coupon. Please try again.');
-        }
-    });
-});
-
-
         } else {
-            alert('Failed to fetch coupons. Please try again.');
+            alert(data.message || 'Failed to fetch coupons. Please try again.');
         }
     } catch (error) {
-        console.error("Error fetching coupons:", error);
+        console.error('Error fetching coupons:', error);
         alert('An error occurred while fetching coupons.');
     }
 });
+
+
+
 
 
 

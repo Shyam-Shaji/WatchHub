@@ -152,15 +152,24 @@ const updateQuantity = async (req, res) => {
 
 const getCoupon = async (req, res) => {
     try {
-        const coupons = await Coupon.find({ 
-            isList: true });
-        console.log('checkign coupon: ', coupons) // Fetch only active coupons
-        res.json({ success: true, coupons });
+        const coupons = await Coupon.find({
+            isList: true,
+            expireOn: { $gte: new Date() },
+        });
+        console.log('checking coupons: ',coupons);
+
+        if (!coupons || coupons.length === 0) {
+            return res.status(404).json({ success: false, message: "No active coupons available." });
+        }
+
+        res.status(200).json({ success: true, coupons });
     } catch (error) {
-        console.error("Error fetching coupons:", error);
-        res.status(500).json({ success: false, message: "Failed to fetch coupons." });
+        console.error("Error fetching coupons:", error.message);
+        res.status(500).json({ success: false, message: "Failed to fetch coupons. Please try again later." });
     }
 };
+
+
 
 // const applyCoupon = async (req, res) => {
 //     try {
@@ -203,48 +212,94 @@ const getCoupon = async (req, res) => {
 const applyCoupon = async (req, res) => {
     try {
         const { couponCode } = req.body;
-        console.log('Received couponCode:', couponCode);
+        console.log('Coupon from the req body:', couponCode);
 
-        // Fetch the coupon
-        const coupon = await Coupon.findOne({ code: couponCode, isList: true });
-        if (!coupon) {
-            return res.json({ success: false, message: "Invalid or expired coupon." });
+        // Validate input
+        if (!couponCode) {
+            return res.status(400).json({ success: false, message: "Coupon code is required." });
         }
 
+        // Find the coupon by code, ensure it is valid
+        const coupon = await Coupon.findOne({
+            name: couponCode,
+            isList: true, // Check if the coupon is listed
+            expireOn: { $gte: new Date() }, // Check if the coupon is not expired
+        });
+
+        if (!coupon) {
+            return res.status(404).json({ success: false, message: "Invalid or expired coupon." });
+        }
+
+        console.log('Coupon found:', coupon); // Debugging log to check coupon details
+
+        // Get user session and verify user is logged in
         const user = req.session.user;
         if (!user) {
-            return res.json({ success: false, message: "User session not found. Please log in." });
+            return res.status(401).json({ success: false, message: "User not logged in. Please log in and try again." });
         }
 
+        console.log('User session data:', user);
+
+        // Ensure the user._id exists before querying the cart
+        if (!user) {
+            return res.status(400).json({ success: false, message: "Invalid user data." });
+        }
+
+        // Find the user's cart by userId
         const cart = await Cart.findOne({ userId: user });
         if (!cart) {
-            return res.json({ success: false, message: "Cart not found." });
+            console.log('No cart found for user ID:', user);
+            return res.status(404).json({ success: false, message: "Cart not found." });
         }
 
-        console.log('Cart details:', cart);
+        console.log('Cart data found:', cart); // Debugging log to check cart details
 
-        
-        if (cart.totalPrice < coupon.minimumPrice) {
-            return res.json({
+        // Check if the cart contains items
+        if (cart.items.length === 0) {
+            return res.status(400).json({ success: false, message: "Cart is empty." });
+        }
+
+        // Get the total price from the cart items
+        const cartTotalPrice = cart.items.reduce((total, item) => total + item.totalPrice, 0);
+        console.log('Calculated cart total price:', cartTotalPrice); // Debugging log for cart total
+
+        // Ensure the coupon.offerPrice and cartTotalPrice are valid numbers
+        if (isNaN(coupon.offerPrice) || isNaN(cartTotalPrice)) {
+            console.log('Invalid coupon offerPrice or cart total price');
+            return res.status(400).json({
                 success: false,
-                message: `Coupon can only be applied for orders above ${coupon.minimumPrice}.`
+                message: "Invalid coupon or cart total price.",
             });
         }
 
-        
-        const discount = Math.min(coupon.offerPrice, cart.totalPrice); 
+        // Skip checking for minimum price (allowing coupons on smaller orders)
+        // Calculate the discount
+        const discount = Math.min(coupon.offerPrice, cartTotalPrice);
+        if (discount <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Coupon discount is not applicable.",
+            });
+        }
+
+        // Update cart with discount
         cart.discount = discount;
-        cart.totalPrice = Math.max(0, cart.totalPrice - discount); 
+        cart.totalPrice = cartTotalPrice - discount; // Update the totalPrice after discount
+
+        // Save the updated cart
         await cart.save();
 
-        res.json({ success: true, discount });
+        res.status(200).json({
+            success: true,
+            discount,
+            newTotalPrice: cart.totalPrice,
+            message: `Coupon applied successfully! You saved ₹${discount}.`,
+        });
     } catch (error) {
-        console.error("Error applying coupon: ", error);
-        res.status(500).json({ success: false, message: "Failed to apply coupon." });
+        console.error('Error applying coupon:', error.message);
+        res.status(500).json({ success: false, message: "Failed to apply coupon. Please try again later." });
     }
 };
-
-
 
 
 module.exports = {

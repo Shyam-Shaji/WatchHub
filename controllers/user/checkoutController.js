@@ -352,14 +352,6 @@ const placeOrder = async (req, res) => {
     }
 };
 
-
-
-
-
-
-
-
-
 module.exports = {
     checkoutPage,
     placeOrder,
