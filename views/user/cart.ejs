@@ -192,14 +192,23 @@
                                 <div class="total-amount">
                                     <div class="left">
                                         <div class="coupon">
-                                            <!-- Apply Coupon Button -->
-                                            <button id="apply-coupon-btn" class="btn btn-primary btn-sm">
-                                                <i class="fi-rs-label mr-10"></i>Apply Coupon
-                                            </button>
+                                            <% if (appliedCoupon) { %>
+                                                <!-- Remove Coupon Button -->
+                                                <button id="remove-coupon-btn" class="btn btn-danger btn-sm" onclick="removeCoupon()">
+                                                    <i class="fi-rs-cross mr-10"></i>Remove Coupon
+                                                </button>
+                                                <span class="ml-10">Applied Coupon: <strong><%= appliedCoupon.code %></strong></span>
+                                            <% } else { %>
+                                                <!-- Apply Coupon Button -->
+                                                <button id="apply-coupon-btn" class="btn btn-primary btn-sm" onclick="applyCoupon()">
+                                                    <i class="fi-rs-label mr-10"></i>Apply Coupon
+                                                </button>
+                                            <% } %>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            
                             
                             <!-- Coupon Modal -->
                             <div id="couponModal" class="modal" style="display: none;">
@@ -234,6 +243,12 @@
                                                 <td class="cart_total_label">Shipping</td>
                                                 <td class="cart_total_amount"><i class="ti-gift mr-5"></i> Flat Rate: <span>$<%= shipping.toFixed(2) %></span></td>
                                             </tr>
+                                            <% if (discount > 0) { %>
+                                            <tr>
+                                                <td class="cart_total_label">Discount</td>
+                                                <td class="cart_total_amount text-danger">- $<%= discount.toFixed(2) %></td>
+                                            </tr>
+                                            <% } %>
                                             <tr>
                                                 <td class="cart_total_label">Total</td>
                                                 <td class="cart_total_amount"><strong><span class="font-xl fw-900 text-brand">$<%= total.toFixed(2) %></span></strong></td>
@@ -241,6 +256,7 @@
                                         </tbody>
                                     </table>
                                 </div>
+                                
                                 <a href="/checkoutPage" class="btn"><i class="fi-rs-box-alt mr-10"></i> Proceed To CheckOut</a>
                             </div>
                             
@@ -402,92 +418,56 @@ document.querySelectorAll('.remove-cart').forEach(button => {
 
 //coupon
 // Show modal and fetch coupons on button click
+// Fetch and display coupons
+// Fetch and display coupons
+// Apply Coupon Button Click Handler
 document.getElementById('apply-coupon-btn').addEventListener('click', async () => {
     try {
-        // Fetch coupons from the server
-        const response = await fetch('/getCoupons'); // API endpoint for fetching coupons
+        const response = await fetch('/getCoupons'); // Fetch coupons from the server
         const data = await response.json();
-        console.log('Coupons fetched:', data);
 
         if (data.success) {
             const couponModal = document.getElementById('couponModal');
             const couponList = document.getElementById('couponList');
             couponList.innerHTML = ''; // Clear existing coupons
 
-            // Populate the coupon list
+            // Populate coupon list
             data.coupons.forEach(coupon => {
-                console.log('Coupon data:', coupon); // Log the entire coupon object
-
                 const listItem = document.createElement('li');
-                // Assuming coupon.name is the code (adjust as necessary)
-                const couponCode = coupon.name; // or coupon.code if that's the correct field
-                listItem.textContent = `${couponCode} - ${coupon.offerPrice} off`;
-                console.log('Coupon code being set:', couponCode); // Debugging log
-                listItem.dataset.couponCode = couponCode; // Set coupon code as a data attribute
+                listItem.textContent = `${coupon.name} - ₹${coupon.offerPrice} off`;
+                listItem.dataset.couponCode = coupon.name; // Store coupon code in a data attribute
                 listItem.className = 'coupon-item';
                 couponList.appendChild(listItem);
             });
 
-            // Show the coupon modal
-            couponModal.style.display = 'block';
+            couponModal.style.display = 'block'; // Show the modal
 
-            // Add click functionality for each coupon
+            // Add click functionality to apply coupon
             document.querySelectorAll('.coupon-item').forEach(item => {
                 item.addEventListener('click', async () => {
-                    const couponCode = item.dataset.couponCode; // Fetch coupon code
-                    console.log('Selected Coupon Code:', couponCode); // Debugging log
-
-                    if (!couponCode) {
-                        alert('Coupon code is missing. Please try again.');
-                        return;
-                    }
-
-                    // Apply coupon logic
-                    try {
-                        const applyResponse = await fetch('/applyCoupon', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({ couponCode }),
-                        });
-
-                        const applyData = await applyResponse.json();
-                        console.log('Apply Coupon Response:', applyData); // Debugging log
-
-                        if (applyData.success) {
-                            alert(`Coupon applied! Discount: ${applyData.discount}`);
-                            couponModal.style.display = 'none'; // Close the modal
-                        } else {
-                            alert(applyData.message); // Show error message
-                        }
-                    } catch (err) {
-                        console.error('Error applying coupon:', err);
-                        alert('Failed to apply coupon. Please try again.');
-                    }
+                    await handleApplyCoupon(item.dataset.couponCode);
+                    couponModal.style.display = 'none'; // Hide modal after applying coupon
                 });
             });
         } else {
-            alert(data.message || 'Failed to fetch coupons. Please try again.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error Fetching Coupons',
+                text: data.message || 'Failed to fetch coupons. Please try again.',
+            });
         }
     } catch (error) {
         console.error('Error fetching coupons:', error);
-        alert('An error occurred while fetching coupons.');
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred while fetching coupons.',
+        });
     }
 });
 
-
-
-
-
-
-// Close modal on button click
-document.querySelector('.close-btn').addEventListener('click', () => {
-    document.getElementById('couponModal').style.display = 'none';
-});
-
-// Apply selected coupon
-async function applyCoupon(couponCode) {
+// Handle applying a coupon
+async function handleApplyCoupon(couponCode) {
     try {
         const response = await fetch('/applyCoupon', {
             method: 'POST',
@@ -495,23 +475,70 @@ async function applyCoupon(couponCode) {
             body: JSON.stringify({ couponCode }),
         });
 
-        if (!response.ok) {
-            throw new Error('Failed to fetch coupon data');
-        }
-
         const data = await response.json();
+
         if (data.success) {
-            alert(`Coupon applied successfully! Discount: ${data.discount}`);
-            document.getElementById('couponModal').style.display = 'none';
-            
+            Swal.fire({
+                icon: 'success',
+                title: 'Coupon Applied',
+                text: `Discount: ₹${data.discount}`,
+            });
+            document.getElementById('remove-coupon-btn').style.display = 'inline-block';
+            document.getElementById('apply-coupon-btn').style.display = 'none';
         } else {
-            alert(data.message || 'Failed to apply coupon.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed to Apply Coupon',
+                text: data.message || 'An error occurred while applying the coupon.',
+            });
         }
     } catch (error) {
-        console.error("Error applying coupon:", error);
-        alert('An error occurred while applying the coupon.');
+        console.error('Error applying coupon:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to apply coupon. Please try again.',
+        });
     }
 }
+
+// Remove coupon
+document.getElementById('remove-coupon-btn').addEventListener('click', async () => {
+    try {
+        const response = await fetch('/removeCoupon', { method: 'POST' });
+        const data = await response.json();
+
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Coupon Removed',
+                text: 'The coupon has been successfully removed.',
+            });
+            document.getElementById('remove-coupon-btn').style.display = 'none';
+            document.getElementById('apply-coupon-btn').style.display = 'inline-block';
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed to Remove Coupon',
+                text: data.message || 'An error occurred while removing the coupon.',
+            });
+        }
+    } catch (error) {
+        console.error('Error removing coupon:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to remove the coupon. Please try again.',
+        });
+    }
+});
+
+// Close modal on button click
+document.querySelectorAll('.close-btn').forEach(closeBtn => {
+    closeBtn.addEventListener('click', () => {
+        document.getElementById('couponModal').style.display = 'none';
+    });
+});
 
 </script>
 
