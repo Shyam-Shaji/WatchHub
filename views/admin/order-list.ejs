@@ -166,7 +166,45 @@
                 document.getElementById(`statusSelect-${orderId}`).value = 'Pending';
             }
         });
-    } else {
+    }else if (newStatus == 'Return Approved'){
+        console.log(orderId)
+        fetch(`/admin/orders/approve-return/${orderId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status:newStatus }),
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                Swal.fire(
+                    'Updated!',
+                    `Order status has been updated to ${newStatus}.`,
+                    'success'
+                ).then(() => location.reload());
+            } else {
+                Swal.fire(
+                    'Error!',
+                    data.message || 'Failed to update the order status.',
+                    'error'
+                );
+                // Reset dropdown to the previous value
+                document.getElementById(`statusSelect-${orderId}`).value = 'Pending';
+            }
+        })
+        .catch((error) => {
+            Swal.fire(
+                'Error!',
+                'An unexpected error occurred. Please try again later.',
+                'error'
+            );
+            console.error('Error updating order status:', error);
+            // Reset dropdown to the previous value
+            document.getElementById(`statusSelect-${orderId}`).value = 'Pending';
+        });
+    }
+     else {
         sendStatusUpdate(orderId, newStatus);
     }
 }

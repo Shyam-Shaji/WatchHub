@@ -192,18 +192,12 @@
                                 <div class="total-amount">
                                     <div class="left">
                                         <div class="coupon">
-                                            <% if (appliedCoupon) { %>
-                                                <!-- Remove Coupon Button -->
-                                                <button id="remove-coupon-btn" class="btn btn-danger btn-sm" onclick="removeCoupon()">
-                                                    <i class="fi-rs-cross mr-10"></i>Remove Coupon
-                                                </button>
-                                                <span class="ml-10">Applied Coupon: <strong><%= appliedCoupon.code %></strong></span>
-                                            <% } else { %>
+                                           
                                                 <!-- Apply Coupon Button -->
                                                 <button id="apply-coupon-btn" class="btn btn-primary btn-sm" onclick="applyCoupon()">
                                                     <i class="fi-rs-label mr-10"></i>Apply Coupon
                                                 </button>
-                                            <% } %>
+                                           
                                         </div>
                                     </div>
                                 </div>
@@ -243,12 +237,7 @@
                                                 <td class="cart_total_label">Shipping</td>
                                                 <td class="cart_total_amount"><i class="ti-gift mr-5"></i> Flat Rate: <span>$<%= shipping.toFixed(2) %></span></td>
                                             </tr>
-                                            <% if (discount > 0) { %>
-                                            <tr>
-                                                <td class="cart_total_label">Discount</td>
-                                                <td class="cart_total_amount text-danger">- $<%= discount.toFixed(2) %></td>
-                                            </tr>
-                                            <% } %>
+                                            
                                             <tr>
                                                 <td class="cart_total_label">Total</td>
                                                 <td class="cart_total_amount"><strong><span class="font-xl fw-900 text-brand">$<%= total.toFixed(2) %></span></strong></td>

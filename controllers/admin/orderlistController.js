@@ -1,10 +1,12 @@
 const Order = require('../../models/orderSchema');
 const Wallet = require('../../models/walletSchema');
+const User = require('../../models/userSchema');
+const Product = require('../../models/productSchema')
 
 const orderList = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1; 
-        const limit = 20;
+        const limit = 50;
         const skip = (page - 1) * limit;
 
         
@@ -93,6 +95,7 @@ const updateOrderStatus = async (req, res) => {
 };
 
 const returnOrderList = async(req,res)=>{
+    
     try {
 
         const returnedOrders = await Order.find({returnedStatus:{$in:['Requested', 'Approved']}});
@@ -108,16 +111,95 @@ const returnOrderList = async(req,res)=>{
     }
 }
 
-const returnApprove = async(req,res)=>{
-    const orderId = req.params.id;
+const returnApprove = async (req, res) => {
+    const { id } = req.params;
+
     try {
-        await Order.findByIdAndUpdate(orderId,{ returnStatus: 'Approved' });
-        res.redirect('/admin/orderlist');
+        // console.log('ajsdfjlkdjflkj chekint return approve ',id);
+        // Fetch the order details
+        const order = await Order.findOne({ _id:id });
+        console.log(order)
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found',
+            });
+        }
+
+        // Check if the return is already approved
+        if (order.returnStatus === 'Return Approved') {
+            return res.status(400).json({
+                success: false,
+                message: 'Return is already approved.',
+            });
+        }
+
+        // Check if the payment method is Razorpay
+        if (order.paymentMethod !== 'Razor Pay') {
+            return res.status(400).json({
+                success: false,
+                message: 'Return can only be approved for Razorpay payments.',
+            });
+        }
+
+        // Calculate refund amount (assuming return items are a subset of order items)
+        const refundAmount = order.items.reduce((total, item) => {
+            return total + item.price * item.quantity;
+        }, 0);
+
+        console.log('checking amoutn : ', refundAmount);
+
+        // Update order's return status
+        order.returnStatus = 'Approved';
+        await order.save();
+
+        // Find or create wallet for the user
+        let wallet = await Wallet.findOne({ userId: order.userId });
+        if (!wallet) {
+            wallet = await Wallet.create({
+                userId: order.userId,
+                walletBalance: 0,
+                transactions: [],
+            });
+        }
+
+        // Credit refund amount to the user's wallet
+        wallet.walletBalance += refundAmount;
+
+        // Log the transaction in the wallet
+        wallet.transactions.push({
+            date: new Date(),
+            description: `Refund for returned order ${id}`,
+            amount: refundAmount,
+            transactionType: 'Credit',
+            status: 'Completed',
+        });
+
+        // Save the wallet updates
+        await wallet.save();
+
+        // Adjust stock for the returned items
+        for (const item of order.items) {
+            await Product.findByIdAndUpdate(item.product, {
+                $inc: { quantity: item.quantity },
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Return approved successfully. Refund credited to wallet.',
+            walletBalance: wallet.walletBalance,
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).send('Error approving return');
+        console.error('Error approving return: ', error);
+        res.status(500).json({
+            success: false,
+            message: 'An error occurred while approving the return.',
+        });
     }
-}
+};
+
+
 
 
 
