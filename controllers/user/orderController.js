@@ -29,7 +29,7 @@ const viewOrder = async (req, res) => {
         }
 
         const page = parseInt(req.query.page) || 1;
-        const limit = 5; // Number of orders per page
+        const limit = 50; // Number of orders per page
         const skip = (page - 1) * limit;
 
         const totalOrders = await Order.countDocuments({ userId });

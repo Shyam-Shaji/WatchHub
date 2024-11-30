@@ -1,5 +1,6 @@
 const User = require('../../models/userSchema');
 const mongoose = require('mongoose');
+const Order = require('../../models/orderSchema');
 const bcrypt = require('bcrypt');
 
 const pageerror = async(req,res)=>{
@@ -49,11 +50,17 @@ const loadDashboard = async(req,res)=>{
     if(req.session.admin){
 
         try {
-            res.render('dashboard');
+            const completedOrders = await Order.find({status
+                : "Completed"});
+            console.log('checking completed order coming: ', completedOrders);
+            res.render('dashboard',{completedOrders});
         } catch (error) {
+            console.error('Error fetching completed orders: ',error);
             res.redirect('/pageerror');
         }
 
+    }else{
+        res.redirect('/admin/login');
     }
 
 }
