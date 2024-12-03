@@ -150,49 +150,75 @@
 
     <script>
         function validateForm() {
-            let imageDatas = document.getElementById("imageDatas")?.value;
-            clearErrorMessages();
+    clearErrorMessages();
     
-            const name = document.getElementsByName('productName')[0].value;
-            const description = document.getElementsByName('description')[0].value;
-            const quantity = document.getElementsByName('quantity')[0].value;
-            const price = document.getElementsByName('regularPrice')[0].value;
-            const salePrice = document.getElementsByName('salePrice')[0].value;
-            const images = document.getElementById('input1');
-            let isValid = true;
-    
-            if (name.trim() === "") {
-                displayErrorMessage('productName-error', 'Please enter a product name.');
-                isValid = false;
-            }
-    
-            if (description.trim() === "") {
-                displayErrorMessage('description-error', 'Please enter a product description.');
-                isValid = false;
-            }
-    
-            if (parseInt(quantity) < 0 || isNaN(parseInt(quantity))) {
-                displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
-                isValid = false;
-            }
-    
-            if (!/^\d+(\.\d{1,2})?$/.test(price) || parseFloat(price) < 0) {
-                displayErrorMessage('regularPrice-error', 'Please enter a valid non-negative price.');
-                isValid = false;
-            }
-    
-            if (!/^\d+(\.\d{1,2})?$/.test(salePrice) || parseFloat(salePrice) < 0) {
-                displayErrorMessage('salePrice-error', 'Please enter a valid non-negative sale price.');
-                isValid = false;
-            }
-    
-            if (!imageDatas && images.files.length === 0) {
-                displayErrorMessage("images-error", 'Please select an image.');
-                isValid = false;
-            }
-    
-            return isValid;
-        }
+    let isValid = true; // To track if the form is valid
+
+    // Trim and validate Product Name
+    const nameInput = document.getElementsByName('productName')[0];
+    const productName = nameInput.value.trim();
+    if (!productName) {
+        document.getElementById('productName-error').innerText = "Product name is required.";
+        isValid = false;
+    } else if (productName.length < 3) {
+        document.getElementById('productName-error').innerText = "Product name must be at least 3 characters.";
+        isValid = false;
+    }
+    nameInput.value = productName; // Update the field with trimmed value
+
+    // Trim and validate Description
+    const descriptionInput = document.getElementById('descriptionid');
+    const description = descriptionInput.value.trim();
+    if (!description) {
+        document.getElementById('description-error').innerText = "Description is required.";
+        isValid = false;
+    } else if (description.length < 10) {
+        document.getElementById('description-error').innerText = "Description must be at least 10 characters.";
+        isValid = false;
+    }
+    descriptionInput.value = description; // Update the field with trimmed value
+
+    // Validate Brand
+    const brand = document.getElementsByName('brand')[0].value;
+    if (!brand) {
+        document.getElementById('brand-error').innerText = "Please select a brand.";
+        isValid = false;
+    }
+
+    // Trim and validate Regular Price
+    const regularPriceInput = document.getElementsByName('regularPrice')[0];
+    const regularPrice = regularPriceInput.value.trim();
+    if (!regularPrice || isNaN(regularPrice) || parseFloat(regularPrice) <= 0) {
+        document.getElementById('regularPrice-error').innerText = "Regular price must be a positive number.";
+        isValid = false;
+    }
+    regularPriceInput.value = regularPrice;
+
+    // Trim and validate Sale Price
+    const salePriceInput = document.getElementsByName('salePrice')[0];
+    const salePrice = salePriceInput.value.trim();
+    if (salePrice && (isNaN(salePrice) || parseFloat(salePrice) <= 0)) {
+        document.getElementById('salePrice-error').innerText = "Sale price must be a positive number.";
+        isValid = false;
+    }
+    salePriceInput.value = salePrice;
+
+    // Trim and validate Quantity
+    const quantityInput = document.getElementsByName('quantity')[0];
+    const quantity = quantityInput.value.trim();
+    if (!quantity || isNaN(quantity) || parseInt(quantity) <= 0) {
+        document.getElementById('quantity-error').innerText = "Quantity must be a positive integer.";
+        isValid = false;
+    }
+    quantityInput.value = quantity;
+
+    return isValid;
+}
+
+function clearErrorMessages() {
+    const errorFields = document.querySelectorAll('.error-message');
+    errorFields.forEach(field => field.innerText = '');
+}
     
         function displayErrorMessage(elementId, message) {
             const errorElement = document.getElementById(elementId);

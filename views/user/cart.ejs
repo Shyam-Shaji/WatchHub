@@ -406,14 +406,12 @@ document.querySelectorAll('.remove-cart').forEach(button => {
 });
 
 //coupon
-// Show modal and fetch coupons on button click
-// Fetch and display coupons
-// Fetch and display coupons
-// Apply Coupon Button Click Handler
 document.getElementById('apply-coupon-btn').addEventListener('click', async () => {
     try {
-        const response = await fetch('/getCoupons'); // Fetch coupons from the server
+        const response = await fetch('/getCoupons'); 
+        console.log('checking response coupon : ',response);
         const data = await response.json();
+        console.log('checking response data coupon : ',data);
 
         if (data.success) {
             const couponModal = document.getElementById('couponModal');
@@ -428,7 +426,7 @@ document.getElementById('apply-coupon-btn').addEventListener('click', async () =
                 listItem.className = 'coupon-item';
                 couponList.appendChild(listItem);
             });
-
+            console.log('data set coupon',data);
             couponModal.style.display = 'block'; // Show the modal
 
             // Add click functionality to apply coupon
@@ -463,9 +461,9 @@ async function handleApplyCoupon(couponCode) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ couponCode }),
         });
-
+        console.log('checking response handleapplycoupon : ',response);
         const data = await response.json();
-
+        console.log('checking data handleapplycoupon : ',data);
         if (data.success) {
             Swal.fire({
                 icon: 'success',

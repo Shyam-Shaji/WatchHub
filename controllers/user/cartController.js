@@ -279,9 +279,9 @@ const applyCoupon = async (req, res) => {
         console.log('User session data:', user);
 
        
-        if (!user) {
-            return res.status(400).json({ success: false, message: "Invalid user data." });
-        }
+        // if (!user) {
+        //     return res.status(400).json({ success: false, message: "Invalid user data." });
+        // }
 
         
         const cart = await Cart.findOne({ userId: user });
@@ -313,7 +313,8 @@ const applyCoupon = async (req, res) => {
         if(cartTotalPrice < coupon.minimumPrice){
             return res.status(400).json({
                 success : false,
-                message: `Minimum purchase of ₹${coupon.minimumPrice} is required to apply this coupon.`,
+                message: `Minimum purchase of ₹${coupon.minimumPrice
+                } is required to apply this coupon.`,
             })
         }
 
@@ -334,6 +335,7 @@ const applyCoupon = async (req, res) => {
         await cart.save();
 
         res.status(200).json({
+            
             success: true,
             discount,
             newTotalPrice: cart.totalPrice,
