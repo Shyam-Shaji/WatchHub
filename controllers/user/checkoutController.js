@@ -242,19 +242,7 @@ const placeOrder = async (req, res) => {
             return res.status(401).json({success: false, message:"Not found"});
         }
 
-        // const cartItems = req.session.cartItems || [];
-        // console.log('Session Cart Items:', cartItems);
-
-        // const totalAmount = req.session.totalAmount || 0;
-
-
-        // const validatedCartItems = cartItems.map((item) => {
-        //     if (!item.product || !item.quantity || !item.price || !item.totalPrice) {
-        //         console.error('Invalid cart item structure:', item);
-        //         throw new Error('Invalid cart item structure');
-        //     }
-        //     return item;
-        // });
+        
 
         let paymentMethod;
         switch (payment_option) {
@@ -302,6 +290,13 @@ const placeOrder = async (req, res) => {
         userCart.items.forEach(item => {
             totalAmount += item.price;
         });
+
+        if(paymentMethod === 'Cash on Delivery' && totalAmount > 10000){
+            return res.status(400).json({
+                success : false,
+                message : 'Cash on Delivery is not available for order above ₹10,000.'
+            })
+        }
 
         if (paymentMethod === 'Razor Pay') {
             try {

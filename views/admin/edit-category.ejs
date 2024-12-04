@@ -3,23 +3,57 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-6 mt-60">
-            <form method="post" action="/admin/editCategory/<%= category._id %>">
+            <form id="editCategoryForm" method="post" action="/admin/editCategory/<%= category._id %>">
                 <div class="d-grid text-end mt-30 col-md-5">
                     <button class="btn btn-primary" type="submit">Update category</button>
                 </div>
                 <div class="mb-4 mt-30">
-                    <label for="product_name" class="form-label">Name</label>
-                    <input type="text" name="categoryName" value="<%= category.name %>" class="form-control border" />
+                    <label for="categoryName" class="form-label">Name</label>
+                    <input type="text" id="categoryName" name="categoryName" value="<%= category.name %>" 
+                        class="form-control border" required />
+                    <div class="text-danger mt-1" id="nameError" style="display: none;">Category name cannot be empty or just spaces.</div>
                 </div>
                 
                 <div class="mb-4">
-                    <label class="form-label">Description</label>
-                    <textarea name="description" class="form-control border"><%= category.description %></textarea>
+                    <label for="description" class="form-label">Description</label>
+                    <textarea id="description" name="description" class="form-control border" rows="6" 
+                        style="height: 150px;" required><%= category.description %></textarea>
+                    <div class="text-danger mt-1" id="descriptionError" style="display: none;">Description cannot be empty or just spaces.</div>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+<script>
+     document.getElementById('editCategoryForm').addEventListener('submit', function (event) {
+        let isValid = true;
+
+        // Validate Category Name
+        const categoryName = document.getElementById('categoryName');
+        const nameError = document.getElementById('nameError');
+        if (!categoryName.value.trim()) {
+            nameError.style.display = 'block';
+            isValid = false;
+        } else {
+            nameError.style.display = 'none';
+        }
+
+       
+        const description = document.getElementById('description');
+        const descriptionError = document.getElementById('descriptionError');
+        if (!description.value.trim()) {
+            descriptionError.style.display = 'block';
+            isValid = false;
+        } else {
+            descriptionError.style.display = 'none';
+        }
+
+        
+        if (!isValid) {
+            event.preventDefault();
+        }
+    });
+</script>
 
 <%- include('../partials/admin/admin-footer.ejs') %>
