@@ -4,6 +4,7 @@ const Order = require('../../models/orderSchema');
 const Product = require('../../models/productSchema');
 const moment = require('moment');
 const bcrypt = require('bcrypt');
+const { format } = require('morgan');
 
 const pageerror = async(req,res)=>{
     res.render('admin-error');
@@ -69,6 +70,10 @@ const loadDashboard = async (req, res) => {
                 const startOfLastMonth = moment().subtract(1, 'month').startOf('month').toDate();
                 const endOfLastMonth = moment().subtract(1, 'month').endOf('month').toDate();
                 filterCriteria.orderDate = { $gte: startOfLastMonth, $lte: endOfLastMonth };
+            }else if(filter === 'yearly'){
+                const startOfYear = moment().startOf('year').toDate();
+                const endOfYear = moment().endOf('year').toDate();
+                filterCriteria.orderDate = {$gte : startOfYear, $lte: endOfYear};
             }
 
             
@@ -93,6 +98,46 @@ const loadDashboard = async (req, res) => {
             const totalPages = Math.ceil(totalOrders / limit); 
 
             const totalProducts = await Product.countDocuments({});
+
+            const startOfMonth = moment().startOf('month').toDate();
+            const endOfMonth = moment().endOf('month').toDate();
+
+            const monthlyIncomeResult = await Order.aggregate([
+                {
+                    $match : {
+                        orderDate : {$gte : startOfMonth, $lte : endOfMonth},
+                        status : "Completed"
+                    }
+                },
+                {
+                    $group : {
+                        _id:null,
+                        monthlyIncome : {$sum : "$totalAmount"}
+                    }
+                }
+            ]);
+
+            const monthlyIncome = monthlyIncomeResult.length > 0 ? monthlyIncomeResult[0].monthlyIncome : 0;
+
+            const chartData = await Order.aggregate([
+                { $match: filterCriteria },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: "%Y-%m-%d", date: "$orderDate" } },
+                        totalAmount: { $sum: "$totalAmount" },
+                    },
+                },
+                { $sort: { _id: 1 } },
+            ]);
+
+            console.log('checking chartData ', chartData);
+
+            const formattedChartData = {
+                labels: chartData.map(data => data._id),
+                sales: chartData.map(data => data.totalAmount),
+            };
+
+            console.log('checking formattedchartdata : ',formattedChartData);
             
             res.render('dashboard', {
                 completedOrders,
@@ -101,7 +146,9 @@ const loadDashboard = async (req, res) => {
                 filter,
                 totalOrders,
                 totalAmount,
-                totalProducts, 
+                totalProducts,
+                monthlyIncome,
+                chartData: formattedChartData,
             });
         } catch (error) {
             console.error('Error fetching completed orders: ', error);
