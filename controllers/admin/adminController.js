@@ -138,6 +138,65 @@ const loadDashboard = async (req, res) => {
             };
 
             console.log('checking formattedchartdata : ',formattedChartData);
+
+            const bestSellingProducts = await Order.aggregate([
+                { $unwind: "$items" }, 
+                {
+                    $group: {
+                        _id: "$items.product",
+                        totalQuantity: { $sum: "$items.quantity" }, 
+                    },
+                },
+                { $sort: { totalQuantity: -1 } }, 
+                { $limit: 10 }, 
+                {
+                    $lookup: {
+                        from: "products", 
+                        localField: "_id", 
+                        foreignField: "_id", 
+                        as: "productDetails", 
+                    },
+                },
+                { $unwind: "$productDetails" }, 
+                {
+                    $project: {
+                        productId: "$_id", 
+                        productName: "$productDetails.productName", 
+                        totalQuantity: 1,
+                        regularPrice: "$productDetails.regularPrice", 
+                        salePrice: "$productDetails.salePrice", 
+                        productImage: "$productDetails.productImage", 
+                    },
+                },
+            ]);
+
+            const bestSellingBrands = await Order.aggregate([
+                { $unwind: "$items" }, 
+                {
+                    $lookup: {
+                        from: "products", 
+                        localField: "items.product",
+                        foreignField: "_id",
+                        as: "productDetails",
+                    },
+                },
+                { $unwind: "$productDetails" }, 
+                {
+                    $group: {
+                        _id: "$productDetails.brand", 
+                        totalQuantity: { $sum: "$items.quantity" }, 
+                    },
+                },
+                { $sort: { totalQuantity: -1 } }, 
+                { $limit: 10 }, 
+                {
+                    $project: {
+                        brand: "$_id",
+                        totalQuantity: 1,
+                        _id: 0,
+                    },
+                },
+            ]);
             
             res.render('dashboard', {
                 completedOrders,
@@ -149,6 +208,8 @@ const loadDashboard = async (req, res) => {
                 totalProducts,
                 monthlyIncome,
                 chartData: formattedChartData,
+                bestSellingProducts,
+                bestSellingBrands
             });
         } catch (error) {
             console.error('Error fetching completed orders: ', error);

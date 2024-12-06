@@ -278,6 +278,18 @@ const placeOrder = async (req, res) => {
         }
         console.log('user cart: ', userCart);
 
+        const productIds = userCart.items.map(item => item.productId);
+        const products = await Product.find({_id : {$in : productIds}});
+
+        const blockedProducts = products.filter(product => product.isBlocked);
+        if(blockedProducts.length > 0){
+            return res.status(400).json({
+                success : false,
+                message : "Some products in your cart are blocked and cannot be purchased.",
+                blockedProducts : blockedProducts.map(product => product.name)
+            });
+        }
+
         const item = userCart.items.map((item)=> ({
             product : item.productId,
             quantity : item.quantity,
