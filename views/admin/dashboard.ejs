@@ -208,7 +208,7 @@
                                         <td><a href="#" class="fw-bold">#<%= order.orderId %></a></td>
                                         <td><%= order.billingName %></td>
                                         <td><%= new Date(order.orderDate).toLocaleDateString() %></td>
-                                        <td>₹<%= order.totalAmount %></td>
+                                        <td><%= order.totalAmount %></td>
                                         <td><span class="badge badge-soft-success"><%= order.status %></span></td>
                                         <td><%= order.paymentMethod %></td>
                                         <td><a href="#" class="btn btn-xs">View details</a></td>

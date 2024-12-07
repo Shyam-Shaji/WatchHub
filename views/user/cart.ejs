@@ -237,7 +237,10 @@
                                                 <td class="cart_total_label">Shipping</td>
                                                 <td class="cart_total_amount"><i class="ti-gift mr-5"></i> Flat Rate: <span>$<%= shipping.toFixed(2) %></span></td>
                                             </tr>
-                                            
+                                            <tr>
+                                                <td class="cart_total_label">Discount</td>
+                                                <td class="cart_total_amount"><i class="ti-gift mr-5"></i><span>$<%= discount || 0 %></span></td>
+                                            </tr>
                                             <tr>
                                                 <td class="cart_total_label">Total</td>
                                                 <td class="cart_total_amount"><strong><span class="font-xl fw-900 text-brand">$<%= total.toFixed(2) %></span></strong></td>
@@ -468,10 +471,12 @@ async function handleApplyCoupon(couponCode) {
             Swal.fire({
                 icon: 'success',
                 title: 'Coupon Applied',
-                text: `Discount: ₹${data.discount}`,
+                text: data.message || 'Coupon applied successfully',
             });
-            document.getElementById('remove-coupon-btn').style.display = 'inline-block';
+            console.log('success workinmg')
+            // document.getElementById('remove-coupon-btn').style.display = 'inline-block';
             document.getElementById('apply-coupon-btn').style.display = 'none';
+            document.getElementById
         } else {
             Swal.fire({
                 icon: 'error',

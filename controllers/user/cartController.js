@@ -334,8 +334,7 @@ const applyCoupon = async (req, res) => {
         
         await cart.save();
 
-        res.status(200).json({
-            
+       return res.status(200).json({
             success: true,
             discount,
             newTotalPrice: cart.totalPrice,
@@ -343,7 +342,7 @@ const applyCoupon = async (req, res) => {
         });
     } catch (error) {
         console.error('Error applying coupon:', error.message);
-        res.status(500).json({ success: false, message: "Failed to apply coupon. Please try again later." });
+        return res.status(500).json({ success: false, message: "Failed to apply coupon. Please try again later." });
     }
 };
 
