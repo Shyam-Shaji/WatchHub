@@ -306,7 +306,26 @@ const returnOrder = async (req, res) => {
     }
 };
 
+const getInvoicePage = async(req,res)=>{
+    try {
 
+        const user = req.session.user;
+        const userData = await User.findOne({_id : user});
+
+        const orderId = req.params.id;
+        const order = await Order.findById(orderId).populate('items.product');
+
+        if(!order){
+            return res.status(404).send('Order not found');
+        }
+
+        res.render('invoice',{user : userData,order});
+        
+    } catch (error) {
+        console.error('Error generating invoice',error);
+        res.status(500).send('Internal Server Error');
+    }
+}
 
 
 
@@ -315,4 +334,5 @@ module.exports = {
     createOrder,
     orderCancell,
     returnOrder,
+    getInvoicePage,
 };

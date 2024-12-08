@@ -1,4 +1,4 @@
-<%- include('../partials/user/header.ejs') %>
+<%- include('../partials/user/header.ejs') -%>
 
 <style>
     table {
@@ -130,21 +130,27 @@
                                                 </td>
                                                 <td><strong>$<%= order.totalAmount %></strong></td>
                                                 <td>
-                                                    <% if (order.status === 'Completed') { %>
-                                                        <!-- Show Return Button if status is 'Completed' -->
-                                                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#returnModal" data-order-id="<%= order.orderId %>">
-                                                            Return
-                                                        </button>
-                                                    <% } else if (order.status !== 'Cancelled' && order.status !== 'Returned') { %>
-                                                        <!-- Show Cancel Button for all other statuses except 'Cancelled' and 'Returned' -->
-                                                        <button class="btn btn-sm btn-danger mb-2" onclick="cancelOrder('<%= order.orderId %>')">
-                                                            Cancel
-                                                        </button>
-                                                    <% } else { %>
-                                                        <!-- Show status as text if the order is 'Cancelled' or 'Returned' -->
-                                                        <span class="text-muted"><%= order.status %></span>
-                                                    <% } %>
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        <a class="btn btn-sm btn-primary" href="/orderDetail/<%= order._id %>">View Details</a>
+                                                        <a class="btn btn-sm btn-info" href="/invoice/<%= order._id %>">Invoice</a>
+                                                        
+                                                        <% if (order.status === 'Completed') { %>
+                                                            <!-- Show Return Button if status is 'Completed' -->
+                                                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#returnModal" data-order-id="<%= order.orderId %>">
+                                                                Return
+                                                            </button>
+                                                        <% } else if (order.status !== 'Cancelled' && order.status !== 'Returned') { %>
+                                                            <!-- Show Cancel Button for all other statuses except 'Cancelled' and 'Returned' -->
+                                                            <button class="btn btn-sm btn-danger" onclick="cancelOrder('<%= order.orderId %>')">
+                                                                Cancel
+                                                            </button>
+                                                        <% } else { %>
+                                                            <!-- Show status as text if the order is 'Cancelled' or 'Returned' -->
+                                                            <span class="text-muted"><%= order.status %></span>
+                                                        <% } %>
+                                                    </div>
                                                 </td>
+                                                
                                                 
                                             </tr>
                                         <% }) %>
@@ -316,4 +322,4 @@
 }
 </script>
 
-<%- include('../partials/user/footer.ejs') %>  
+<%- include('../partials/user/footer.ejs') -%>  

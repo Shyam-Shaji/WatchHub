@@ -1,0 +1,233 @@
+<%- include('../partials/user/header.ejs') -%>
+
+<style>
+    .invoice {
+      max-width: 900px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 30px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .header--logo {
+      text-align: right;
+    }
+
+    .line-items thead th {
+      background-color: #343a40;
+      color: white;
+    }
+
+    .total-price {
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+  </style>
+
+<div class="container my-5">
+    <article class="invoice">
+      
+      <!-- Invoice Header -->
+      <div class="row mb-4">
+        <div class="col-md-8">
+          <h1 class="fw-bold">INVOICE</h1>
+          <p><strong>Invoice Date:</strong> <%= order.orderDate.toDateString() %></p>
+          <p><strong>Recipient:</strong> <%= order.address.name %></p>
+          <p><strong>City:</strong><%= order.address.city %></p>
+          <p><strong>Land Mark:</strong><%= order.address.landMark %></p>
+          <p><strong>State:</strong><%= order.address.state %></p>
+          <p><strong>Pincode:</strong><%= order.address.pincode %></p>
+          <p><strong>Phone:</strong><%= order.address.phone %></p>
+          <p><strong>Payment Method:</strong><%= order.paymentMethod %></p>
+        </div>
+        <div class="col-md-4 text-md-end header--logo">
+          <div class="fw-bold">ᴡᴀᴛᴄʜʜᴜʙ</div>
+          <p>
+            123 Main Street<br>
+            Palakkad, Kerala, 678581<br>
+            <strong>Phone:</strong> +91 3333<br>
+            <strong>Email:</strong> watchhub@gmail.com
+          </p>
+        </div>
+      </div>
+
+      <!-- Invoice Notes -->
+      <div class="mb-4">
+        <h5>Invoice Notes / Details</h5>
+        <p>Thank you for your purchase! Please find your order details below.</p>
+      </div>
+
+      <!-- Order Items Table -->
+      <div class="table-responsive mb-4">
+        <table class="table table-bordered table-hover line-items">
+          <thead class="text-center">
+            <tr>
+              <th>#</th>
+              <th>Product</th>
+              <th>Quantity</th>
+              <th>Rate</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% order.items.forEach((item, index) => { %>
+              <tr>
+                <td class="text-center"><%= index + 1 %></td>
+                <td><%= item.product ? item.product.productName : 'Product not found' %></td>
+                <td class="text-center"><%= item.quantity %></td>
+                <td class="text-end"><%= item.product ? item.product.salePrice.toFixed(2) : '0.00' %></td>
+                <td class="text-end"><%= item.product ? (item.product.salePrice * item.quantity).toFixed(2) : '0.00' %></td>
+              </tr>
+            <% }) %>
+
+            <!-- Total Amount Row -->
+            <tr>
+              <td colspan="4" class="text-end"><strong>Total Amount</strong></td>
+              <td class="text-end total-price">INR <%= order.totalAmount.toFixed(2) %></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Payment Details -->
+      <div>
+        <h5>Payment Details</h5>
+        <p class="fw-light">If you have any questions, please reach out to us at <strong>watchhub@gmail.com</strong>.</p>
+      </div>
+    </article>
+    <div class="text-center mt-4">
+        <button id="download-btn" class="btn btn-primary">Download PDF</button>
+      </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+
+  <script>
+    document.getElementById('download-btn').addEventListener('click', async function () {
+  try {
+    // Create a new PDF document
+    const { PDFDocument, rgb } = PDFLib;
+    const pdfDoc = await PDFDocument.create();
+
+    // Add a page to the PDF
+    const page = pdfDoc.addPage([600, 800]);
+    const { width, height } = page.getSize();
+
+    // Define increased margins
+    const marginX = 70; // Increased horizontal margin
+    let y = height - 70; // Increased top margin
+
+    // Extract order data from the template
+    const orderDate = '<%= order.orderDate.toDateString() %>';
+    const recipient = '<%= order.address.name %>';
+    const city = '<%= order.address.city %>';
+    const landMark = '<%= order.address.landMark %>';
+    const state = '<%= order.address.state %>';
+    const pincode = '<%= order.address.pincode %>';
+    const phone = '<%= order.address.phone %>';
+    const paymentMethod = '<%= order.paymentMethod %>';
+    const items = JSON.parse('<%- JSON.stringify(order.items) %>');
+    const totalAmount = parseFloat('<%= order.totalAmount %>');
+
+    // Add title
+    page.drawText('INVOICE', {
+      x: marginX,
+      y: y,
+      size: 28, // Slightly larger title
+      color: rgb(0, 0, 0),
+    });
+
+    y -= 50; // Extra spacing below the title
+
+    // Add recipient details
+    const details = `
+Invoice Date: ${orderDate}
+Recipient: ${recipient}
+City: ${city}
+Landmark: ${landMark}
+State: ${state}
+Pincode: ${pincode}
+Phone: ${phone}
+Payment Method: ${paymentMethod}
+    `;
+
+    page.drawText(details, {
+      x: marginX,
+      y: y,
+      size: 12,
+      lineHeight: 18, // Increased line height for better readability
+      maxWidth: width - 2 * marginX, // Ensure text stays within the margins
+    });
+
+    y -= 150; // Increased spacing between recipient details and table headers
+
+    // Add table headers
+    const headers = ['#', 'Product', 'Quantity', 'Rate', 'Total'];
+    const colWidths = [30, 220, 80, 80, 80]; // Adjusted column widths for better spacing
+
+    headers.forEach((header, index) => {
+      page.drawText(header, {
+        x: marginX + colWidths.slice(0, index).reduce((a, b) => a + b, 0),
+        y: y,
+        size: 12,
+        color: rgb(0, 0, 0),
+      });
+    });
+
+    y -= 25; // Extra spacing below headers
+
+    // Add table rows
+    items.forEach((item, index) => {
+      const productName = item.product ? item.product.productName : 'Product not found';
+      const quantity = item.quantity.toString();
+      const rate = item.product ? `${item.product.salePrice.toFixed(2)}` : '0.00';
+      const total = item.product ? `${(item.product.salePrice * item.quantity).toFixed(2)}` : '0.00';
+
+      const row = [
+        (index + 1).toString(),
+        productName,
+        quantity,
+        rate,
+        total,
+      ];
+
+      row.forEach((text, colIndex) => {
+        page.drawText(text, {
+          x: marginX + colWidths.slice(0, colIndex).reduce((a, b) => a + b, 0),
+          y: y,
+          size: 11,
+        });
+      });
+
+      y -= 25; // Increased spacing between rows
+    });
+
+    // Add total amount
+    y -= 40; // Extra space above the total amount
+    page.drawText(`Total Amount: ${totalAmount.toFixed(2)}`, {
+      x: marginX,
+      y: y,
+      size: 16, // Slightly larger font size for total amount
+      color: rgb(0, 0, 0),
+    });
+
+    // Serialize the PDF to bytes
+    const pdfBytes = await pdfDoc.save();
+
+    // Trigger the download
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'invoice.pdf';
+    link.click();
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+  }
+});
+
+
+  </script>
+
+<%- include('../partials/user/footer.ejs') -%>

@@ -3,6 +3,7 @@ const router = express.Router();
 const userController = require('../controllers/user/userController');
 const profileController = require('../controllers/user/profileController');
 const orderController = require('../controllers/user/orderController');
+const orderDetailController = require('../controllers/user/orderDetailController');
 const walletController = require('../controllers/user/walletController');
 const addressController = require('../controllers/user/addressController');
 const wishlistController = require('../controllers/user/wishlisControllert');
@@ -84,6 +85,8 @@ router.get('/orders', orderController.viewOrder);
 router.post('/createOrder',orderController.createOrder);
 router.post('/cancel-order/:orderId',orderController.orderCancell);
 router.post('/return-order/:orderId',orderController.returnOrder);
+router.get('/invoice/:id',orderController.getInvoicePage);
+router.get('/orderDetail/:id',orderDetailController.getOrderDetailPage);
 //order
 
 //wallet 
