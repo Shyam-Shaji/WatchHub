@@ -156,7 +156,7 @@
                                 <h4>Calculate Shipping</h4>
                             </div>
                             <p class="mt-15 mb-30">Flat rate: <span class="font-xl text-brand fw-900">5%</span></p>
-                            <form class="field_form shipping_calculator">
+                            <!-- <form class="field_form shipping_calculator">
                                 <div class="form-row">
                                     <div class="form-group col-lg-12">
                                         <div class="custom_select">
@@ -184,7 +184,7 @@
                                         <button class="btn  btn-sm"><i class="fi-rs-shuffle mr-10"></i>Update</button>
                                     </div>
                                 </div>
-                            </form>
+                            </form> -->
                             <div class="mb-30 mt-50">
                                 <div class="heading_s1 mb-3">
                                     <h4>Apply Coupon</h4>
@@ -196,6 +196,10 @@
                                                 <!-- Apply Coupon Button -->
                                                 <button id="apply-coupon-btn" class="btn btn-primary btn-sm" onclick="applyCoupon()">
                                                     <i class="fi-rs-label mr-10"></i>Apply Coupon
+                                                </button>
+
+                                                <button id="remove-coupon-btn" class="btn btn-danger btn-sm" onclick="removeCoupon()" style="display: none;">
+                                                    <i class="fi-rs-cross mr-10"></i>Remove Coupon
                                                 </button>
                                            
                                         </div>
@@ -231,19 +235,19 @@
                                         <tbody>
                                             <tr>
                                                 <td class="cart_total_label">Cart Subtotal</td>
-                                                <td class="cart_total_amount"><span class="font-lg fw-900 text-brand">$<%= subtotal.toFixed(2) %></span></td>
+                                                <td class="cart_total_amount"><span class="font-lg fw-900 text-brand">₹<%= subtotal.toFixed(2) %></span></td>
                                             </tr>
                                             <tr>
                                                 <td class="cart_total_label">Shipping</td>
-                                                <td class="cart_total_amount"><i class="ti-gift mr-5"></i> Flat Rate: <span>$<%= shipping.toFixed(2) %></span></td>
+                                                <td class="cart_total_amount"><i class="ti-gift mr-5"></i> Flat Rate: <span>₹<%= shipping.toFixed(2) %></span></td>
                                             </tr>
                                             <tr>
                                                 <td class="cart_total_label">Discount</td>
-                                                <td class="cart_total_amount"><i class="ti-gift mr-5"></i><span>$<%= discount || 0 %></span></td>
+                                                <td class="cart_total_amount"><i class="ti-gift mr-5"></i><span>₹<%= discount || 0 %></span></td>
                                             </tr>
                                             <tr>
                                                 <td class="cart_total_label">Total</td>
-                                                <td class="cart_total_amount"><strong><span class="font-xl fw-900 text-brand">$<%= total.toFixed(2) %></span></strong></td>
+                                                <td class="cart_total_amount"><strong><span class="font-xl fw-900 text-brand">₹<%= total.toFixed(2) %></span></strong></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -530,6 +534,13 @@ document.querySelectorAll('.close-btn').forEach(closeBtn => {
     closeBtn.addEventListener('click', () => {
         document.getElementById('couponModal').style.display = 'none';
     });
+});
+
+window.addEventListener('click', (event) => {
+    const couponModal = document.getElementById('couponModal');
+    if (event.target === couponModal) {
+        couponModal.style.display = 'none';
+    }
 });
 
 </script>

@@ -33,10 +33,10 @@ const checkoutPage = async (req, res) => {
 
       
 
-        let totalAmount = 0;
+        let subtotal = 0;
         const cartItems = cart.items.map(item => {
             const { productId, quantity, totalPrice } = item;
-            totalAmount += totalPrice;
+            subtotal += totalPrice;
             return {
                 productId: productId._id,
                 productName: productId.productName,
@@ -47,7 +47,13 @@ const checkoutPage = async (req, res) => {
             };
         });
 
+        const discount = cart.discount || 0;
+        const totalAmount = subtotal - discount;
+
         console.log('checking cartItems', cartItems);
+        console.log('subtotal in checkout page : ',subtotal);
+        console.log('discount in checkout page : ',discount);
+        console.log('total amount in checkout page : ',totalAmount);
 
         const address = await Address.findOne({ userId });
         let addressList = [];
@@ -63,7 +69,9 @@ const checkoutPage = async (req, res) => {
             user: user,
             cartId: cart._id,
             cartItems: cartItems,
-            totalAmount: totalAmount,
+            subtotal: subtotal,
+            discount : discount,
+            totalAmount : totalAmount,
             addressList: addressList,
             showAddAddressButton: addressList.length === 0
         });
@@ -298,10 +306,19 @@ const placeOrder = async (req, res) => {
         }))
         console.log('items log ', item);
 
-        let totalAmount = 0;
-        userCart.items.forEach(item => {
-            totalAmount += item.price;
-        });
+        let subtotal = userCart.items.reduce((sum,item)=> sum + item.totalPrice,0);
+
+        const discount = userCart.discount || 0;
+        const totalAmount = subtotal - discount;
+
+        console.log('subtotal form the placeOrder : ',subtotal);
+        console.log('discount form the placeOrder : ',discount);
+        console.log('total amount after discount : ',totalAmount);
+
+        // let totalAmount = 0;
+        // userCart.items.forEach(item => {
+        //     totalAmount += item.price;
+        // });
 
         if(paymentMethod === 'Cash on Delivery' && totalAmount > 10000){
             return res.status(400).json({
@@ -318,6 +335,20 @@ const placeOrder = async (req, res) => {
                     receipt: `receipt_${Date.now()}`,
                 });
 
+                const pendingOrder = new Order({
+                    userId,
+                    address,
+                    paymentMethod,
+                    items : item,
+                    totalAmount,
+                    discount,
+                    status : "Payment Pending",
+                    orderDate : new Date(),
+                    razorpayOrderId : razorpayOrder.id,
+                });
+
+                await pendingOrder.save();
+
                 return res.json({
                     success: true,
                     order: razorpayOrder,
@@ -326,6 +357,10 @@ const placeOrder = async (req, res) => {
                     paymentMethod,
                     items : item,
                     couponCode: req.body.couponCode || null,
+                    subtotal,
+                    discount,
+                    totalAmount,
+                    orderId : pendingOrder._id,
                 });
             } catch (razorPayError) {
                 console.error('Razorpay error:', razorPayError.message);
@@ -339,6 +374,7 @@ const placeOrder = async (req, res) => {
             paymentMethod,
             items: item,
             totalAmount,
+            discount,
             status: 'Pending',
             orderDate: new Date(),
         });
@@ -352,12 +388,18 @@ const placeOrder = async (req, res) => {
             success: true,
             message: 'Order placed successfully',
             orderId: order._id,
+            subtotal,
+            discount,
+            totalAmount,
         });
     } catch (error) {
         console.error('Error placing order:', error.message);
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
+
+
+
 
 module.exports = {
     checkoutPage,

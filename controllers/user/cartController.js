@@ -67,11 +67,13 @@ const viewCart = async (req, res) => {
         }
 
         const userData = await User.findOne({ _id: user });
-        const coupon = await Coupon.find({ isActive: true }); // Fetch active coupons
+        const coupon = await Coupon.find({ isList
+            : true }); // Fetch active coupons
+            console.log('checking the coupon in view cart controller : ', coupon);
         const cart = await Cart.findOne({ userId: user }).populate('items.productId');
 
         if (!cart || cart.items.length === 0) {
-            return res.render('cart', { cart: null, subtotal: 0, shipping: 0, total: 0, user: userData, coupon });
+            return res.render('cart', { cart: null, subtotal: 0, shipping: 0, total: 0, user: userData, coupon, discount : 0, appliedCoupon : null });
         }
 
         const subtotal = cart.items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -79,7 +81,14 @@ const viewCart = async (req, res) => {
         const discount = cart.discount || 0;
         const total = subtotal + shipping - discount;
 
-        res.render('cart', { cart, subtotal, shipping, total, user: userData, coupon, discount, appliedCoupon: cart.appliedCoupon ? await Coupon.findById(cart.appliedCoupon) : null, });
+        let appliedCoupon = null;
+        if (cart.appliedCoupon) {
+            appliedCoupon = await Coupon.findById(cart.appliedCoupon).lean();
+        }
+
+        console.log('checking the applied coupon in the view cart : ',appliedCoupon);
+
+        res.render('cart', { cart, subtotal, shipping, total, user: userData, coupon, discount, appliedCoupon});
     } catch (error) {
         console.error('Error loading cart:', error);
         res.status(500).send('Server error');
@@ -172,16 +181,16 @@ const updateQuantity = async (req, res) => {
 
 const getCoupon = async (req, res) => {
     try {
-        // Fetch coupons that are active and not expired
+        
         const coupons = await Coupon.find({
-            isList: true, // Only listed coupons
-            expireOn: { $gte: new Date() }, // Coupons that are not expired
+            isList: true, 
+            expireOn: { $gte: new Date() }, 
         });
 
-        // Log fetched coupons for debugging
+        
         console.log('Fetched coupons:', coupons);
 
-        // Check if no coupons are found
+       
         if (!coupons || coupons.length === 0) {
             return res.status(404).json({
                 success: false,
@@ -189,16 +198,16 @@ const getCoupon = async (req, res) => {
             });
         }
 
-        // Return the fetched coupons
+        
         res.status(200).json({
             success: true,
             coupons,
         });
     } catch (error) {
-        // Log error details for debugging
+       
         console.error("Error fetching coupons:", error.message);
 
-        // Respond with a generic error message
+        
         res.status(500).json({
             success: false,
             message: "Failed to fetch coupons. Please try again later.",
@@ -320,6 +329,7 @@ const applyCoupon = async (req, res) => {
 
       
         const discount = Math.min(coupon.offerPrice, cartTotalPrice);
+        console.log('checking the discount in the cart after coupon applied',discount);
         if (discount <= 0) {
             return res.status(400).json({
                 success: false,
@@ -330,13 +340,14 @@ const applyCoupon = async (req, res) => {
        
         cart.discount = discount;
         cart.totalPrice = cartTotalPrice - discount; 
+        cart.appliedCoupon = coupon._id;
 
         
         await cart.save();
 
        return res.status(200).json({
             success: true,
-            discount,
+            discount : cart.discount,
             newTotalPrice: cart.totalPrice,
             message: `Coupon applied successfully! You saved ₹${discount}.`,
         });

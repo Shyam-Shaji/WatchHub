@@ -123,7 +123,11 @@
                                     <% }) %>
                                     <tr>
                                         <th>SubTotal</th>
-                                        <td colspan="2">₹<%= totalAmount %></td>
+                                        <td colspan="2">₹<%= subtotal  %></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Discount</th>
+                                        <th colspan="2">-₹<%= discount %></th>
                                     </tr>
                                     <tr>
                                         <th>Shipping</th>
@@ -185,68 +189,14 @@
 
 
 <script>
-    //  document.querySelector(".btn-fill-out").addEventListener("click", async function(event) {
-    //     event.preventDefault(); // Prevent traditional form submission
-        
-    //     // Get selected address and payment option
-    //     const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked');
-    //     const paymentOption = document.querySelector('input[name="payment_option"]:checked');
 
-    //     // Validate selections
-    //     if (!selectedAddress || !paymentOption) {
-    //         Swal.fire({
-    //             icon: 'warning',
-    //             title: 'Missing Information',
-    //             text: 'Please select both an address and a payment method.'
-    //         });
-    //         return;
-    //     }
-
-    //     try {
-    //         // AJAX request to place the order
-    //         const response = await fetch('/place-order', {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json'
-    //             },
-    //             body: JSON.stringify({
-    //                 selectedAddress: selectedAddress.value,
-    //                 payment_option: paymentOption.id
-    //             })
-    //         });
-
-    //         const result = await response.json();
-
-    //         if (result.success) {
-    //             // Show the confirmation modal on successful order placement
-    //             $('#orderConfirmationModal').modal('show');
-    //         } else {
-    //             // Show error message using SweetAlert
-    //             Swal.fire({
-    //                 icon: 'error',
-    //                 title: 'Order Failed',
-    //                 text: 'Failed to place the order: ' + result.message
-    //             });
-    //         }
-    //     } catch (error) {
-    //         console.error('Error placing order:', error);
-    //         // Show error message using SweetAlert
-    //         Swal.fire({
-    //             icon: 'error',
-    //             title: 'Error',
-    //             text: 'There was an error placing your order. Please try again.'
-    //         });
-    //     }
-    // });
-
-    document.querySelector(".btn-fill-out").addEventListener("click", async function (event) {
+document.querySelector(".btn-fill-out").addEventListener("click", async function (event) {
     event.preventDefault();
 
     const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked');
     const paymentOption = document.querySelector('input[name="payment_option"]:checked');
- 
 
-    if (!selectedAddress || !paymentOption ) {
+    if (!selectedAddress || !paymentOption) {
         Swal.fire({
             icon: 'warning',
             title: 'Missing Information',
@@ -271,12 +221,8 @@
 
         if (paymentOption.id === 'razor_pay') {
             const order = result.order;
-            console.log('checking razorpay order: ',order);
+            console.log('checking razorpay order: ', order);
             if (!order || !order.amount || !order.currency || !order.id) throw new Error('Invalid order details');
-
-            // const keyResponse = await fetch('/get-razorpay-key');
-            // const { key: razorpayKey } = await keyResponse.json();
-            // if (!razorpayKey) throw new Error('Missing Razorpay key');
 
             const options = {
                 key: result.razorpayKeyId,
@@ -294,7 +240,7 @@
                         });
 
                         const verifyResult = await verifyResponse.json();
-                        console.log("verifyResult is ",verifyResult);
+                        console.log("verifyResult is ", verifyResult);
                         
                         if (!verifyResult.success) throw new Error(verifyResult.message);
 
@@ -326,10 +272,21 @@
                     email: order.customerEmail || '',
                     contact: order.customerContact || ''
                 },
-                theme: { color: '#3399cc' }
+                theme: { color: '#3399cc' },
+                
             };
-
+            
             const rzp = new Razorpay(options);
+            rzp.on("payment.failed",function (response) {
+                        console.error('Payment failed:', response.error);
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Payment Failed',
+                            text: `Reason: ${response.error.description || 'Transaction failed'}`,
+                        });
+                        window.location.href = '/orders'
+                    })
             rzp.open();
         } else {
             $('#orderConfirmationModal').modal('show');
@@ -342,125 +299,6 @@
         });
     }
 });
-
-
-
-
-
-
-// document.querySelector(".btn-fill-out").addEventListener("click", async function (event) {
-//     event.preventDefault();
-
-//     const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked');
-//     const paymentOption = document.querySelector('input[name="payment_option"]:checked');
-
-//     if (!selectedAddress || !paymentOption) {
-//         Swal.fire({
-//             icon: 'warning',
-//             title: 'Missing Information',
-//             text: 'Please select both an address and a payment method.'
-//         });
-//         return;
-//     }
-
-//     try {
-//         const response = await fetch('/place-order', {
-//             method: 'POST',
-//             headers: { 'Content-Type': 'application/json' },
-//             body: JSON.stringify({
-//                 selectedAddress: selectedAddress.value,
-//                 payment_option: paymentOption.id
-//             })
-//         });
-
-//         if (!response.ok) throw new Error('Failed to place the order');
-//         const result = await response.json();
-
-//         if (result.success && result.paymentMethod === 'Razor Pay') {
-//             const order = result.order;
-
-//             if (!order || !order.amount || !order.currency || !order.id) {
-//                 Swal.fire({
-//                     icon: 'error',
-//                     title: 'Order Error',
-//                     text: 'Invalid order details received from the server.'
-//                 });
-//                 return;
-//             }
-
-//             const keyResponse = await fetch('/get-razorpay-key');
-//             if (!keyResponse.ok) throw new Error('Failed to fetch Razorpay key');
-//             const { key: razorpayKey } = await keyResponse.json();
-
-//             const options = {
-//                 key: razorpayKey,
-//                 amount: order.amount,
-//                 currency: order.currency,
-//                 name: 'Watch Hub',
-//                 description: 'Order Payment',
-//                 order_id: order.id,
-//                 handler: async function (response) {
-//                     try {
-//                         const verifyResponse = await fetch('/verify-payment', {
-//                             method: 'POST',
-//                             headers: { 'Content-Type': 'application/json' },
-//                             body: JSON.stringify(response)
-//                         });
-
-//                         if (!verifyResponse.ok) throw new Error('Payment verification failed');
-//                         const verifyResult = await verifyResponse.json();
-
-//                         if (verifyResult.success) {
-//                             $('#orderConfirmationModal').modal('show');
-//                         } else {
-//                             Swal.fire({
-//                                 icon: 'error',
-//                                 title: 'Payment Verification Failed',
-//                                 text: verifyResult.message
-//                             });
-//                         }
-//                     } catch (error) {
-//                         console.error('Error during payment verification:', error);
-//                         Swal.fire({
-//                             icon: 'error',
-//                             title: 'Error',
-//                             text: 'An error occurred during payment verification.'
-//                         });
-//                     }
-//                 },
-//                 prefill: {
-//                     name: 'Shyam',
-//                     email: 'shyamshaji42@gmail.com',
-//                     contact: '8888'
-//                 },
-//                 theme: { color: '#3399cc' }
-//             };
-
-//             const rzp = new Razorpay(options);
-//             rzp.open();
-//         } else if (result.success) {
-//             $('#orderConfirmationModal').modal('show');
-//         } else {
-//             Swal.fire({
-//                 icon: 'error',
-//                 title: 'Order Failed',
-//                 text: result.message
-//             });
-//         }
-//     } catch (error) {
-//         console.error('Error:', error);
-//         Swal.fire({
-//             icon: 'error',
-//             title: 'Error',
-//             text: 'An error occurred. Please try again.'
-//         });
-//     }
-// });
-
-
-
-
-
 
 </script>
 

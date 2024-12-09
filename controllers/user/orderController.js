@@ -4,6 +4,7 @@ const Product = require('../../models/productSchema');
 const Cart = require('../../models/cartSchema');
 const Wallet = require('../../models/walletSchema');
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 const {Types} = require('mongoose');
 const { applyCoupon } = require('./cartController');
 
@@ -327,6 +328,109 @@ const getInvoicePage = async(req,res)=>{
     }
 }
 
+const retryPayment = async (req,res)=>{
+    try {
+        const {orderId} = req.body;
+        const order = await Order.findOne({_id: orderId,status: 'Payment Pending'});
+        if(!order){
+            return res.status(400).json({success : false,message:'Order not found or already prcessed'});
+        }
+
+        const razorpayOrder = await razorpayInstance.orders.create({
+            amount : order.totalAmount * 100,
+            currency : 'INR',
+            receipt : `retry_receipt_${Date.now()}`,
+        });
+
+        order.razorpayOrderId = razorpayOrder.id;
+        await order.save();
+
+        return res.json({
+            success : true,
+            order : razorpayOrder,
+            razorpayKeyId : process.env.RAZORPAY_KEY_ID
+        });
+
+    } catch (error) {
+        console.error('Error retrying payment : ',error.message);
+        res.status(500).json({success: false,message : 'Internal Server Error'});
+    }
+};
+
+const verifyRetryPayment = async (req, res) => {
+    try {
+        // Log all incoming data for debugging
+        console.log('Request Params:', req.params);
+        console.log('Request Body:', req.body);
+
+        const { orderId } = req.params;
+        const { 
+            razorpay_payment_id, 
+            razorpay_order_id, 
+            razorpay_signature 
+        } = req.body;
+
+        // Comprehensive input validation
+        if (!orderId || !razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Missing required payment details',
+                receivedData: { orderId, razorpay_payment_id, razorpay_order_id }
+            });
+        }
+
+        // Validate Order ID
+        if (!mongoose.Types.ObjectId.isValid(orderId)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Invalid Order ID format' 
+            });
+        }
+
+        // Find order with matching ID 
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Order not found',
+                orderId: orderId
+            });
+        }
+
+        // Verify Razorpay signature
+        const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
+        hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`);
+        const generatedSignature = hmac.digest('hex');
+
+        if (generatedSignature !== razorpay_signature) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Payment verification failed. Invalid signature' 
+            });
+        }
+
+        // Update order status
+        order.status = 'Pending';
+        order.paymentId = razorpay_payment_id;
+        order.razorpayOrderId = razorpay_order_id;
+        order.paidAt = new Date();
+        await order.save();
+
+        res.status(200).json({ 
+            success: true, 
+            message: 'Payment verified successfully' 
+        });
+
+    } catch (error) {
+        console.error('Error verifying retry payment:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Internal Server Error',
+            errorDetails: error.message 
+        });
+    }
+};
 
 
 module.exports = {
@@ -335,4 +439,6 @@ module.exports = {
     orderCancell,
     returnOrder,
     getInvoicePage,
+    retryPayment,
+    verifyRetryPayment,
 };

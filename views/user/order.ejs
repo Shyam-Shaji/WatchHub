@@ -133,15 +133,20 @@
                                                     <div class="d-flex flex-wrap gap-2">
                                                         <a class="btn btn-sm btn-primary" href="/orderDetail/<%= order._id %>">View Details</a>
                                                         <a class="btn btn-sm btn-info" href="/invoice/<%= order._id %>">Invoice</a>
-                                                        
+                                                
                                                         <% if (order.status === 'Completed') { %>
                                                             <!-- Show Return Button if status is 'Completed' -->
                                                             <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#returnModal" data-order-id="<%= order.orderId %>">
                                                                 Return
                                                             </button>
+                                                        <% } else if (order.status === 'Payment Pending') { %>
+                                                            <!-- Show Retry Payment Button if status is 'Payment Pending' -->
+                                                            <button class="btn btn-sm btn-secondary" onclick="retryPayment('<%= order._id %>')">
+                                                                Retry Payment
+                                                            </button>
                                                         <% } else if (order.status !== 'Cancelled' && order.status !== 'Returned') { %>
                                                             <!-- Show Cancel Button for all other statuses except 'Cancelled' and 'Returned' -->
-                                                            <button class="btn btn-sm btn-danger" onclick="cancelOrder('<%= order.orderId %>')">
+                                                            <button class="btn btn-sm btn-danger" onclick="cancelOrder('<%= order._id %>')">
                                                                 Cancel
                                                             </button>
                                                         <% } else { %>
@@ -150,6 +155,7 @@
                                                         <% } %>
                                                     </div>
                                                 </td>
+                                                
                                                 
                                                 
                                             </tr>
@@ -320,6 +326,74 @@
         modalInstance.hide();
     }
 }
+
+
+async function retryPayment(orderId) {
+    console.log('Checking the order ID format:', orderId);
+    try {
+        const response = await fetch(`/retry-payment/${orderId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId }),
+        });
+
+        const data = await response.json();
+        console.log('Retry response:', data);
+
+        if (data.success) {
+            const options = {
+                key: data.razorpayKeyId,
+                amount: data.order.amount,
+                currency: data.order.currency,
+                order_id: data.order.id,
+                handler: async function (response) {
+                    try {
+                        const verifyResponse = await fetch(`/verify-retry-payment/${orderId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(response), // Pass the Razorpay response
+                        });
+
+                        const verifyResult = await verifyResponse.json();
+
+                        if (!verifyResult.success) throw new Error(verifyResult.message);
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Payment Successful',
+                            text: 'Your payment retry was successful',
+                        });
+                        window.location.reload();
+                    } catch (error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Verification Failed',
+                            text: error.message,
+                        });
+                    }
+                },
+                theme: { color: '#3399cc' },
+            };
+            const rzp = new Razorpay(options);
+            rzp.open();
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Retry Failed',
+                text: data.message,
+            });
+        }
+    } catch (error) {
+        console.error('Retry payment error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to retry the payment. Please try again later.',
+        });
+    }
+}
+
+
 </script>
 
 <%- include('../partials/user/footer.ejs') -%>  

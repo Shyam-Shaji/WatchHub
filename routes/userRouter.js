@@ -85,6 +85,9 @@ router.get('/orders', orderController.viewOrder);
 router.post('/createOrder',orderController.createOrder);
 router.post('/cancel-order/:orderId',orderController.orderCancell);
 router.post('/return-order/:orderId',orderController.returnOrder);
+router.post('/retry-payment/:orderId',orderController.retryPayment);
+router.post('/verify-retry-payment/:orderId',orderController.verifyRetryPayment);
+
 router.get('/invoice/:id',orderController.getInvoicePage);
 router.get('/orderDetail/:id',orderDetailController.getOrderDetailPage);
 //order

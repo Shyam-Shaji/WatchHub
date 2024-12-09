@@ -57,7 +57,7 @@ const orderSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ["Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Return Request", "Returned", "Completed","Return Approved"],
+        enum: ["Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Return Request", "Returned", "Completed","Return Approved", "Payment Pending"],
         default: "Pending",
     },
     returnStatus: { // Global return status for the order
