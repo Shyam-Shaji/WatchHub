@@ -155,7 +155,7 @@
     
     <div class="card mb-4">
         <header class="card-header">
-            <h4 class="card-title">Latest orders</h4>
+            <h4 class="card-title">Sales Report</h4>
             <div class="row align-items-center">
                 <div class="col-md-3 col-12 me-auto mb-md-0 mb-3">
                     <div class="custom_select">
@@ -187,7 +187,7 @@
                                     </div>
                                 </th>
                                 <th scope="col">Order ID</th>
-                                <th scope="col">Billing Name</th>
+                                
                                 <th scope="col">Date</th>
                                 <th scope="col">Total</th>
                                 <th scope="col">Payment Status</th>
@@ -206,7 +206,7 @@
                                             </div>
                                         </td>
                                         <td><a href="#" class="fw-bold">#<%= order.orderId %></a></td>
-                                        <td><%= order.billingName %></td>
+                                        
                                         <td><%= new Date(order.orderDate).toLocaleDateString() %></td>
                                         <td><%= order.totalAmount %></td>
                                         <td><span class="badge badge-soft-success"><%= order.status %></span></td>

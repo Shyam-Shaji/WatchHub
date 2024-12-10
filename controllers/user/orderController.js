@@ -179,8 +179,16 @@ const orderCancell = async (req, res) => {
     const userId = req.session.user; 
 
     try {
-        
-        const order = await Order.findOne({ orderId });
+        // Validate input
+        if (!orderId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Order ID is required',
+            });
+        }
+
+        // Find the order with validation
+        const order = await Order.findOne({ _id: orderId });
 
         if (!order) {
             return res.status(404).json({
@@ -189,6 +197,7 @@ const orderCancell = async (req, res) => {
             });
         }
 
+        // Check if order is already cancelled
         if (order.status === 'Cancelled') {
             return res.status(400).json({
                 success: false,
@@ -196,15 +205,34 @@ const orderCancell = async (req, res) => {
             });
         }
 
-       
+        // Validate that the order belongs to the user
+        if (order.userId.toString() !== userId.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: 'Unauthorized to cancel this order',
+            });
+        }
+
+        // Check if order is cancellable (e.g., not shipped or delivered)
+        const nonCancellableStatuses = ['Shipped', 'Delivered'];
+        if (nonCancellableStatuses.includes(order.status)) {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot cancel order with status ${order.status}`,
+            });
+        }
+
+        
         const refundAmount = order.items.reduce((total, item) => {
-            return total + item.price * item.quantity;
+            return total + (item.price * item.quantity);
         }, 0);
 
         
         order.status = 'Cancelled';
+        order.cancelledAt = new Date();
         await order.save();
 
+       
         let wallet = await Wallet.findOne({ userId });
         if (!wallet) {
             wallet = await Wallet.create({
@@ -214,10 +242,8 @@ const orderCancell = async (req, res) => {
             });
         }
 
-       
+        // Credit refund to wallet
         wallet.walletBalance += refundAmount;
-
-      
         wallet.transactions.push({
             date: new Date(),
             description: `Refund for cancelled order ${orderId}`,
@@ -226,19 +252,24 @@ const orderCancell = async (req, res) => {
             status: 'Completed', 
         });
 
-       
         await wallet.save();
 
-       
-        for (const item of order.items) {
-            await Product.findByIdAndUpdate(item.product, {
-                $inc: { quantity: item.quantity }, 
-            });
+        
+        const bulkWriteOperations = order.items.map(item => ({
+            updateOne: {
+                filter: { _id: item.product },
+                update: { $inc: { quantity: item.quantity } }
+            }
+        }));
+
+        if (bulkWriteOperations.length > 0) {
+            await Product.bulkWrite(bulkWriteOperations);
         }
 
         res.json({
             success: true,
             message: 'Order cancelled successfully. Refund credited to wallet.',
+            refundAmount,
             walletBalance: wallet.walletBalance,
         });
     } catch (error) {
@@ -246,6 +277,7 @@ const orderCancell = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'An error occurred while cancelling the order.',
+            errorDetails: error.message
         });
     }
 };
