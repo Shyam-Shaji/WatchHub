@@ -105,7 +105,7 @@ router.post('/place-order',checkoutController.placeOrder);
 router.post('/verify-payment',razorypayController.verifyPayment);
 
 //razorpay
-router.post('/create-order',razorypayController.createOrder);
+router.post('/create-razorpay-order',razorypayController.createOrder);
 router.get('/get-razorpay-key',razorypayController.getRazorpayKey);
 //razorpay
 

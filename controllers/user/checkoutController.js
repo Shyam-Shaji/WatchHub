@@ -348,7 +348,7 @@ const placeOrder = async (req, res) => {
                 });
 
                 await pendingOrder.save();
-
+                await Cart.updateOne({ userId }, { $set: { items: [] } });
                 return res.json({
                     success: true,
                     order: razorpayOrder,

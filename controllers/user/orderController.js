@@ -61,6 +61,8 @@ const viewOrder = async (req, res) => {
 
 
 const createOrder = async (req, res) => {
+    console.log('is it working');
+    
     try {
         const { address, paymentMethod, items, order_id, couponCode } = req.body;
         const userId = req.session.user;
@@ -113,13 +115,15 @@ const createOrder = async (req, res) => {
 
         await newOrder.save();
 
+        console.log('checking the it is working or not ');
+
         // Update product stock
         for (const item of validatedItems) {
             await Product.findByIdAndUpdate(item.product, {
                 $inc: { quantity: -item.quantity },
             });
         }
-
+       
         await Cart.findOneAndDelete({userId : req.session.user })
 
         return res.status(201).json({
@@ -135,44 +139,6 @@ const createOrder = async (req, res) => {
         });
     }
 };
-
-// const orderCancell = async (req, res) => {
-//     const { orderId } = req.params; 
-
-//     try {
-//         const order = await Order.findOneAndUpdate(
-//             { orderId }, 
-//             { status: 'Cancelled' },
-//             { new: true }
-//         );
-
-//         if (!order) {
-//             return res.status(404).json({ 
-//                 success: false, 
-//                 message: 'Order not found' 
-//             });
-//         }
-
-        
-//         for (const item of order.items) {
-//             await Product.findByIdAndUpdate(
-//                 item.product,
-//                 { $inc: { quantity: item.quantity } }
-//             );
-//         }
-
-//         res.json({
-//             success: true,
-//             message: 'Order cancelled successfully and product quantities updated.',
-//         });
-//     } catch (error) {
-//         console.error('Error cancelling order: ', error);
-//         res.status(500).json({
-//             success: false,
-//             message: 'An error occurred while cancelling the order.',
-//         });
-//     }
-// };
 
 const orderCancell = async (req, res) => {
     const { orderId } = req.params; 

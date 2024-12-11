@@ -4,18 +4,18 @@
     <div class="content-header">
         <h2 class="content-title card-title">Order List</h2>
     </div>
-    <div class="card mb-4">
+    <div class="card mb-4 shadow-sm">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
                         <tr>
                             <th>#ID</th>
                             <th>Name</th>
                             <th>Email</th>
                             <th>Total</th>
                             <th>Status</th>
-                            <th>Return Status</th> <!-- New Column -->
+                            <th>Return Status</th>
                             <th>Date</th>
                             <th class="text-end">Action</th>
                         </tr>
@@ -23,32 +23,32 @@
                     <tbody>
                         <% if (orders.length > 0) { %>
                             <% orders.forEach((order) => { %>
-                                <tr>
-                                    <td><%= order._id %></td>
+                                <tr class="border-bottom">
+                                    <td class="fw-bold"><%= order._id %></td>
                                     <td><b><%= order.userId.name %></b></td>
                                     <td><%= order.userId.email %></td>
-                                    <td>$<%= order.totalAmount.toFixed(2) %></td>
+                                    <td class="text-success fw-semibold">$<%= order.totalAmount.toFixed(2) %></td>
                                     <!-- Status Dropdown -->
                                     <td>
                                         <form id="statusForm-<%= order._id %>" method="POST">
-                                            <select name="status" id="statusSelect-<%= order._id %>" class="form-select" onchange="updateOrderStatus('<%= order._id %>')">
+                                            <select name="status" id="statusSelect-<%= order._id %>" class="form-select form-select-sm" onchange="updateOrderStatus('<%= order._id %>')">
                                                 <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
                                                 <option value="Completed" <%= order.status === 'Completed' ? 'selected' : '' %>>Completed</option>
                                                 <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
                                                 <option value="Return Approved" <%= order.status === 'Return Approved' ? 'selected' : '' %>>Return Approved</option>
                                                 <option value="Return Rejected" <%= order.status === 'Return Rejected' ? 'selected' : '' %>>Return Rejected</option>
                                             </select>
-                                        </form>                                                                                
+                                        </form>
                                     </td>
                                     <!-- Return Status Column -->
                                     <td>
                                         <% if (order.status === 'Return Requested') { %>
                                             <span class="badge bg-warning">Return Requested</span>
                                             <form id="approveReturnForm-<%= order._id %>" action="/admin/orders/approve-return/<%= order._id %>?page=<%= currentPage %>" method="POST" style="display:inline;">
-                                                <button type="submit" class="btn btn-success btn-sm">Approve Return</button>
+                                                <button type="submit" class="btn btn-success btn-sm">Approve</button>
                                             </form>
                                             <form id="rejectReturnForm-<%= order._id %>" action="/admin/orders/reject-return/<%= order._id %>?page=<%= currentPage %>" method="POST" style="display:inline;">
-                                                <button type="submit" class="btn btn-danger btn-sm">Reject Return</button>
+                                                <button type="submit" class="btn btn-danger btn-sm">Reject</button>
                                             </form>
                                         <% } else if (order.status === 'Return Approved') { %>
                                             <span class="badge bg-success">Return Approved</span>
@@ -58,104 +58,57 @@
                                             <span class="text-muted">No Return</span>
                                         <% } %>
                                     </td>
-                                    
                                     <td><%= new Date(order.createdAt).toLocaleDateString() %></td>
                                     <td class="text-end">
-                                        <!-- Order Status Badge -->
                                         <% if (order.status === 'Cancelled') { %>
                                             <span class="badge bg-danger">Cancelled</span>
                                         <% } else if (order.status === 'Completed') { %>
                                             <span class="badge bg-success">Completed</span>
                                         <% } else if (order.status === 'Pending') { %>
-                                            <span class="badge bg-warning">Pending</span>
-                                        <% } else if (order.status === 'Return Requested') { %>
-                                            <span class="badge bg-info">Return Requested</span>
-                                        <% } else if (order.status === 'Returned') { %>
-                                            <span class="badge bg-secondary">Returned</span>
+                                            <span class="badge bg-warning text-dark">Pending</span>
                                         <% } else { %>
-                                            <span class="badge bg-light text-dark">Unknown Status</span>
-                                        <% } %>
-                                    
-                                        <!-- Return Status Badge -->
-                                        <% if (order.returnStatus && order.returnStatus !== 'Not Requested') { %>
-                                            <% if (order.returnStatus === 'Requested') { %>
-                                                <span class="badge bg-info">Return Requested</span>
-                                            <% } else if (order.returnStatus === 'Approved') { %>
-                                                <span class="badge bg-success">Return Approved</span>
-                                            <% } else if (order.returnStatus === 'Rejected') { %>
-                                                <span class="badge bg-danger">Return Rejected</span>
-                                            <% } %>
-                                        <% } %>
-                                    
-                                        <!-- Action Buttons -->
-                                        <% if (order.status !== 'Cancelled') { %>
-                                            <% if (order.status === 'Requested') { %>
-                                                <!-- Show Return Approval/Reject Buttons -->
-                                                <form action="/admin/orders/approve-return/<%= order._id %>" method="POST" style="display:inline;">
-                                                    <button type="submit" class="btn btn-success btn-sm">Approve Return</button>
-                                                </form>
-                                                <form action="/admin/orders/reject-return/<%= order._id %>" method="POST" style="display:inline;">
-                                                    <button type="submit" class="btn btn-danger btn-sm">Reject Return</button>
-                                                </form>
-                                            <% } else if (!order.status || order.status === 'Not Requested') { %>
-                                                <!-- Show Cancel Order Button -->
-                                                <form action="/admin/orders/cancel/<%= order._id %>" method="POST" style="display:inline;">
-                                                    <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
-                                                </form>
-                                            <% } %>
-                                        <% } else { %>
-                                            <!-- If Cancelled, Display a Message -->
-                                            <!-- <span class="text-muted">Order Cancelled</span> -->
+                                            <span class="badge bg-secondary">Unknown</span>
                                         <% } %>
                                     </td>
-                                    
-                                    
                                 </tr>
                             <% }); %>
                         <% } else { %>
                             <tr>
-                                <td colspan="8" class="text-center">No orders found</td>
+                                <td colspan="8" class="text-center text-muted">No orders found</td>
                             </tr>
                         <% } %>
                     </tbody>
                 </table>
-
-                <!-- Pagination Controls -->
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center">
-                        <!-- Previous Button -->
-                        <% if (currentPage > 1) { %>
-                            <li class="page-item">
-                                <a class="page-link" href="?page=<%= currentPage - 1 %>" aria-label="Previous">
-                                    <span aria-hidden="true">&laquo;</span>
-                                    <span class="sr-only">Previous</span>
-                                </a>
-                            </li>
-                        <% } %>
-                
-                        <!-- Page Numbers -->
-                        <% for (let i = 1; i <= totalPages; i++) { %>
-                            <li class="page-item <%= i === currentPage ? 'active' : '' %>">
-                                <a class="page-link" href="?page=<%= i %>"><%= i %></a>
-                            </li>
-                        <% } %>
-                
-                        <!-- Next Button -->
-                        <% if (currentPage < totalPages) { %>
-                            <li class="page-item">
-                                <a class="page-link" href="?page=<%= currentPage + 1 %>" aria-label="Next">
-                                    <span aria-hidden="true">&raquo;</span>
-                                    <span class="sr-only">Next</span>
-                                </a>
-                            </li>
-                        <% } %>
-                    </ul>
-                </nav>
-                
             </div>
+
+            <!-- Pagination Controls -->
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <% if (currentPage > 1) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<%= currentPage - 1 %>" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    <% } %>
+                    <% for (let i = 1; i <= totalPages; i++) { %>
+                        <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                            <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                        </li>
+                    <% } %>
+                    <% if (currentPage < totalPages) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<%= currentPage + 1 %>" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    <% } %>
+                </ul>
+            </nav>
         </div>
     </div>
 </section>
+
 
 <script>
    function updateOrderStatus(orderId) {

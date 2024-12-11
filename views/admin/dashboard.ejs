@@ -7,9 +7,9 @@
             <h2 class="content-title card-title">Dashboard </h2>
             <p>Whole data about your business here</p>
         </div>
-        <div>
+        <!-- <div>
             <a href="#" class="btn btn-primary"><i class="text-muted material-icons md-post_add"></i>Create report</a>
-        </div>
+        </div> -->
     </div>
     <div class="row">
         <div class="col-lg-3">
@@ -192,7 +192,7 @@
                                 <th scope="col">Total</th>
                                 <th scope="col">Payment Status</th>
                                 <th scope="col">Payment Method</th>
-                                <th scope="col">View Details</th>
+                               
                             </tr>
                         </thead>
                         <tbody>
@@ -211,7 +211,7 @@
                                         <td><%= order.totalAmount %></td>
                                         <td><span class="badge badge-soft-success"><%= order.status %></span></td>
                                         <td><%= order.paymentMethod %></td>
-                                        <td><a href="#" class="btn btn-xs">View details</a></td>
+                                        
                                     </tr>
                                 <% }); %>
                             <% } else { %>

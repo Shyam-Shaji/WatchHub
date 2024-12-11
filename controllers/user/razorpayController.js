@@ -26,22 +26,56 @@ const verifyPayment = (req, res) => {
 
 
 //remove
+// const createOrder = async (req, res) => {
+//     const { amount } = req.body;
+//     try {
+//         const options = { 
+//             amount: amount * 100, 
+//             currency: 'INR', 
+//             receipt: `receipt_${Math.random()}`,
+//         };
+
+//         const Order = await razorpay.orders.create(options); 
+//         res.json({ success: true, Order });
+//     } catch (error) {
+//         console.error("Error creating Razorpay order: ", error);
+//         res.status(500).json({ success: false, message: "Failed to create Razorpay order" });
+//     }
+// };
+
 const createOrder = async (req, res) => {
-    const { amount } = req.body;
     try {
+        console.log('checking the req body : ',req.body);
+        const { amount } = req.body;
+        console.log('checking recive amount : ',amount);
+        // Validate the amount
+        if (!amount || amount <= 0) {
+            return res.status(400).json({ success: false, message: "Invalid amount" });
+        }
+
+        // Create Razorpay order options
         const options = { 
-            amount: amount * 100, 
-            currency: 'INR', 
-            receipt: `receipt_${Math.random()}`,
+            amount: amount * 100, // Convert to paisa
+            currency: 'INR',
+            receipt: `receipt_${Date.now()}`,
         };
 
-        const Order = await razorpay.orders.create(options); 
-        res.json({ success: true, Order });
+        // Create the Razorpay order
+        const razorpayOrder = await razorpayInstance.orders.create(options);
+
+        return res.json({
+            amount,
+            success: true,
+            message: "Razorpay order created successfully",
+            order: razorpayOrder,
+            razorpayKeyId: process.env.RAZORPAY_KEY_ID,
+        });
     } catch (error) {
-        console.error("Error creating Razorpay order: ", error);
-        res.status(500).json({ success: false, message: "Failed to create Razorpay order" });
+        console.error("Error creating Razorpay order:", error.message);
+        return res.status(500).json({ success: false, message: "Failed to create Razorpay order" });
     }
 };
+
 
 
 const getRazorpayKey = (req, res) => {

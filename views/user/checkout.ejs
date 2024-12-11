@@ -244,19 +244,7 @@ document.querySelector(".btn-fill-out").addEventListener("click", async function
                         
                         if (!verifyResult.success) throw new Error(verifyResult.message);
 
-                        const createOrderResponse = await fetch('/createOrder', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                address: selectedAddress.value,
-                                paymentMethod: 'Razor Pay',
-                                items: result.items,
-                                order_id: order.id,
-                            })
-                        });
-
-                        const createOrderResult = await createOrderResponse.json();
-                        if (!createOrderResult.success) throw new Error(createOrderResult.message);
+                        
 
                         $('#orderConfirmationModal').modal('show');
                     } catch (error) {
@@ -299,6 +287,7 @@ document.querySelector(".btn-fill-out").addEventListener("click", async function
         });
     }
 });
+
 
 </script>
 
