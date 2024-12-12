@@ -20,7 +20,7 @@
                         <h6 class="mb-1 card-title">Revenue</h6>
                         <span>₹<%= totalAmount.toFixed(2) %></span>
                         <span class="text-sm">
-                            Shipping fees are not included
+                            <!-- Shipping fees are not included -->
                         </span>
                     </div>
                 </article>
@@ -33,7 +33,7 @@
                     <div class="text">
                         <h6 class="mb-1 card-title">Orders</h6> <span><%= totalOrders %></span>
                         <span class="text-sm">
-                            Excluding orders in transit
+                            <!-- Excluding orders in transit -->
                         </span>
                     </div>
                 </article>
@@ -46,7 +46,7 @@
                     <div class="text">
                         <h6 class="mb-1 card-title">Products</h6> <span><%= totalProducts %></span>
                         <span class="text-sm">
-                            In 19 Categories
+                            <!-- In 19 Categories -->
                         </span>
                     </div>
                 </article>
@@ -59,7 +59,7 @@
                     <div class="text">
                         <h6 class="mb-1 card-title">Monthly Earning</h6> <span>₹<%= monthlyIncome %></span>
                         <span class="text-sm">
-                            Based in your local time.
+                            <!-- Based in your local time. -->
                         </span>
                     </div>
                 </article>
@@ -187,7 +187,7 @@
                                     </div>
                                 </th>
                                 <th scope="col">Order ID</th>
-                                
+                                <th scope="col">Product Name</th>
                                 <th scope="col">Date</th>
                                 <th scope="col">Total</th>
                                 <th scope="col">Payment Status</th>
@@ -196,8 +196,10 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <% let grandTotal = 0; %>
                             <% if (completedOrders && completedOrders.length > 0) { %>
                                 <% completedOrders.forEach(order => { %>
+                                    <% grandTotal += parseFloat(order.totalAmount) || 0; %>
                                     <tr>
                                         <td class="text-center">
                                             <div class="form-check">
@@ -206,21 +208,26 @@
                                             </div>
                                         </td>
                                         <td><a href="#" class="fw-bold">#<%= order.orderId %></a></td>
-                                        
+                                        <td><%= order.productName %></td>
                                         <td><%= new Date(order.orderDate).toLocaleDateString() %></td>
-                                        <td><%= order.totalAmount %></td>
+                                        <td><%= (parseInt(order.totalAmount) || 0).toFixed(2) %></td>
                                         <td><span class="badge badge-soft-success"><%= order.status %></span></td>
                                         <td><%= order.paymentMethod %></td>
-                                        
                                     </tr>
                                 <% }); %>
                             <% } else { %>
                                 <tr>
-                                    <td colspan="8" class="text-center">No completed orders found.</td>
+                                    <td colspan="7" class="text-center">No completed orders found.</td>
                                 </tr>
                             <% } %>
                         </tbody>
+                        
                     </table>
+                    <% if (completedOrders && completedOrders.length > 0) { %>
+                        <div class="text-end mt-3">
+                            <h5><strong>Grand Total: <%= grandTotal.toFixed(2) %></strong></h5>
+                        </div>
+                    <% } %>
                 </div>
                 <div class="row mb-3">
                     <div class="col-md-6">
@@ -235,21 +242,26 @@
     <div class="pagination-area mt-30 mb-50">
         <nav aria-label="Page navigation example">
             <ul class="pagination justify-content-start">
+                <!-- Previous Page Button -->
                 <% if (currentPage > 1) { %>
                     <li class="page-item">
-                        <a class="page-link" href="?page=<%= currentPage - 1 %>">
+                        <a class="page-link" href="?page=<%= currentPage - 1 %><%= filter ? '&filter=' + filter : '' %>" aria-label="Previous">
                             <i class="material-icons md-chevron_left"></i>
                         </a>
                     </li>
                 <% } %>
+    
+                <!-- Page Numbers -->
                 <% for (let i = 1; i <= totalPages; i++) { %>
                     <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-                        <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                        <a class="page-link" href="?page=<%= i %><%= filter ? '&filter=' + filter : '' %>"><%= i %></a>
                     </li>
                 <% } %>
+    
+                <!-- Next Page Button -->
                 <% if (currentPage < totalPages) { %>
                     <li class="page-item">
-                        <a class="page-link" href="?page=<%= currentPage + 1 %>">
+                        <a class="page-link" href="?page=<%= currentPage + 1 %><%= filter ? '&filter=' + filter : '' %>" aria-label="Next">
                             <i class="material-icons md-chevron_right"></i>
                         </a>
                     </li>
@@ -257,6 +269,7 @@
             </ul>
         </nav>
     </div>
+    
     
 </section>
 
@@ -283,26 +296,43 @@ function downloadPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    doc.text("Filtered Orders Report", 14, 16);
+    doc.text("Sales Report", 14, 16);
 
     const table = document.querySelector("table");
     const filteredRows = Array.from(table.querySelectorAll("tbody tr")).filter(row => row.style.display !== 'none');
+
+    // Column indexes to include: Product Name (2), Date (3), Total (4), Payment Method (6)
+    const includeIndexes = [1, 2, 3, 4, 6];
+
+    // Filter headers
+    const headers = Array.from(table.querySelectorAll("thead th"))
+      .map((th, index) => ({ text: th.innerText.trim(), index }))
+      .filter(header => includeIndexes.includes(header.index))
+      .map(header => header.text);
+
     const data = [];
-    const headers = Array.from(table.querySelectorAll("thead th")).map(th => th.innerText.trim());
 
+    // Extract row data
     filteredRows.forEach(row => {
-        const rowData = Array.from(row.querySelectorAll("td")).map(td => td.innerText.trim());
-        data.push(rowData);
+      const rowData = Array.from(row.querySelectorAll("td"))
+        .map((td, index) => ({ text: td.innerText.trim(), index }))
+        .filter(cell => includeIndexes.includes(cell.index))
+        .map(cell => cell.text);
+      data.push(rowData);
     });
 
+    // Generate PDF table
     doc.autoTable({
-        head: [headers],
-        body: data,
-        startY: 20,
+      head: [headers],
+      body: data,
+      startY: 20,
     });
 
-    doc.save("Filtered_Orders_Report.pdf");
-}
+    doc.save("Sales_Report.pdf");
+  }
+
+
+
 
 function downloadExcel() {
     const table = document.querySelector("table");

@@ -88,10 +88,32 @@ const loadDashboard = async (req, res) => {
             const totalAmount = totalAmountResult.length > 0 ? totalAmountResult[0].totalAmount : 0;
 
            
-            const completedOrders = await Order.find(filterCriteria)
-                .sort({ orderDate: -1 }) 
-                .skip(skip)
-                .limit(limit);
+            const completedOrders = await Order.aggregate([
+                { $match: filterCriteria },
+                { $unwind: "$items" }, // Unwind items to access each product in the order
+                {
+                    $lookup: {
+                        from: "products",
+                        localField: "items.product",
+                        foreignField: "_id",
+                        as: "productDetails"
+                    }
+                },
+                { $unwind: "$productDetails" }, // Unwind to get product details
+                {
+                    $project: {
+                        orderId: 1,
+                        orderDate: 1,
+                        totalAmount: 1,
+                        status: 1,
+                        paymentMethod: 1,
+                        productName: "$productDetails.productName"
+                    }
+                },
+                { $sort: { orderDate: -1 } },
+                { $skip: skip },
+                { $limit: limit }
+            ]);
 
                 console.log('checking completed orders',completedOrders);
 
