@@ -79,7 +79,8 @@ router.post('/updateCoupon/:id',adminAuth,couponController.updateCoupon);
 
 //sales report
 router.get('/sales-report/download',adminAuth,salesController.downloadReport);
-
+router.get('/generate-sales-report',adminAuth,salesController.generateSalesReport);
+router.get('/update-chart/:filter',adminAuth,salesController.updateChartData);
 //sales report
 
 

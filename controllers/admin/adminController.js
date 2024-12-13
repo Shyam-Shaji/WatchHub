@@ -2,6 +2,7 @@ const User = require('../../models/userSchema');
 const mongoose = require('mongoose');
 const Order = require('../../models/orderSchema');
 const Product = require('../../models/productSchema');
+const PDFDocument = require('pdfkit');
 const moment = require('moment');
 const bcrypt = require('bcrypt');
 const { format } = require('morgan');
@@ -258,6 +259,7 @@ const logout = async (req,res)=>{
         res.redirect('/admin/pageerror');
     }
 }
+
 
 module.exports = {
     loadLogin,

@@ -273,6 +273,11 @@
     
 </section>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
+
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
@@ -291,124 +296,238 @@
 }
 
 
+// function downloadPDF() {
+//     const { jsPDF } = window.jspdf;
+//     const doc = new jsPDF();
 
+//     doc.text("Sales Report", 14, 16);
+
+//     const table = document.querySelector("table");
+//     const filteredRows = Array.from(table.querySelectorAll("tbody tr")).filter(row => row.style.display !== 'none');
+
+//     // Column indexes to include: Product Name (2), Date (3), Total (4), Payment Method (6)
+//     const includeIndexes = [1, 2, 3, 4, 6];
+
+//     // Filter headers
+//     const headers = Array.from(table.querySelectorAll("thead th"))
+//       .map((th, index) => ({ text: th.innerText.trim(), index }))
+//       .filter(header => includeIndexes.includes(header.index))
+//       .map(header => header.text);
+
+//     const data = [];
+
+//     // Extract row data
+//     filteredRows.forEach(row => {
+//       const rowData = Array.from(row.querySelectorAll("td"))
+//         .map((td, index) => ({ text: td.innerText.trim(), index }))
+//         .filter(cell => includeIndexes.includes(cell.index))
+//         .map(cell => cell.text);
+//       data.push(rowData);
+//     });
+
+//     // Generate PDF table
+//     doc.autoTable({
+//       head: [headers],
+//       body: data,
+//       startY: 20,
+//     });
+
+//     doc.save("Sales_Report.pdf");
+//   }
+
+
+//new
 function downloadPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    // Get the selected filter value
+    const filter = document.getElementById('filterOrders').value;
 
-    doc.text("Sales Report", 14, 16);
+    // Send an AJAX request to the server with the filter criteria
+    fetch(`/admin/generate-sales-report?filter=${filter}`, {
+        method: 'GET',
+    })
+    .then(response => response.json())
+    .then(data => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
 
-    const table = document.querySelector("table");
-    const filteredRows = Array.from(table.querySelectorAll("tbody tr")).filter(row => row.style.display !== 'none');
+        doc.text("Sales Report", 14, 16);
 
-    // Column indexes to include: Product Name (2), Date (3), Total (4), Payment Method (6)
-    const includeIndexes = [1, 2, 3, 4, 6];
+        const tableData = data.completedOrders; // Assuming you receive filtered data from the server
 
-    // Filter headers
-    const headers = Array.from(table.querySelectorAll("thead th"))
-      .map((th, index) => ({ text: th.innerText.trim(), index }))
-      .filter(header => includeIndexes.includes(header.index))
-      .map(header => header.text);
+        // Column headers
+        const headers = ['Order ID', 'Product Name', 'Date', 'Total', 'Payment Status', 'Payment Method'];
 
-    const data = [];
+        // Format data for table rows
+        const rows = tableData.map(order => [
+            order.orderId,
+            order.productName,
+            new Date(order.orderDate).toLocaleDateString(),
+            parseFloat(order.totalAmount).toFixed(2),
+            order.status,
+            order.paymentMethod,
+        ]);
 
-    // Extract row data
-    filteredRows.forEach(row => {
-      const rowData = Array.from(row.querySelectorAll("td"))
-        .map((td, index) => ({ text: td.innerText.trim(), index }))
-        .filter(cell => includeIndexes.includes(cell.index))
-        .map(cell => cell.text);
-      data.push(rowData);
-    });
+        // Generate the PDF table
+        doc.autoTable({
+            head: [headers],
+            body: rows,
+            startY: 20,
+        });
 
-    // Generate PDF table
-    doc.autoTable({
-      head: [headers],
-      body: data,
-      startY: 20,
-    });
-
-    doc.save("Sales_Report.pdf");
-  }
-
-
-
-
-function downloadExcel() {
-    const table = document.querySelector("table");
-    const rows = Array.from(table.querySelectorAll("tbody tr")).filter(row => row.style.display !== 'none');
-    const workbook = XLSX.utils.book_new();
-    const data = [];
-
-    // Extract data
-    const headers = Array.from(table.querySelectorAll("thead th")).map(th => th.innerText.trim());
-    data.push(headers);
-
-    rows.forEach(row => {
-        const rowData = Array.from(row.querySelectorAll("td")).map(td => td.innerText.trim());
-        data.push(rowData);
-    });
-
-    const worksheet = XLSX.utils.aoa_to_sheet(data);
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Filtered Orders");
-
-    XLSX.writeFile(workbook, "Filtered_Orders_Report.xlsx");
+        // Save the PDF
+        doc.save('Sales_Report.pdf');
+    })
+    .catch(error => console.error('Error generating PDF:', error));
 }
+
+//new excel
+function downloadExcel() {
+    // Get the selected filter value
+    const filter = document.getElementById('filterOrders').value;
+
+    // Send an AJAX request to the server with the filter criteria
+    fetch(`/admin/generate-sales-report?filter=${filter}`, {
+        method: 'GET',
+    })
+    .then(response => response.json())
+    .then(data => {
+        const tableData = data.completedOrders; // Assuming you receive filtered data from the server
+
+        // Prepare the headers and rows for the Excel file
+        const headers = ['Order ID', 'Product Name', 'Date', 'Total', 'Payment Status', 'Payment Method'];
+        const rows = tableData.map(order => [
+            order.orderId,
+            order.productName,
+            new Date(order.orderDate).toLocaleDateString(),
+            parseFloat(order.totalAmount).toFixed(2),
+            order.status,
+            order.paymentMethod,
+        ]);
+
+        // Create a new workbook
+        const wb = XLSX.utils.book_new();
+        
+        // Create a new worksheet
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
+        // Append the worksheet to the workbook
+        XLSX.utils.book_append_sheet(wb, ws, 'Sales Report');
+
+        // Download the Excel file
+        XLSX.writeFile(wb, 'Sales_Report.xlsx');
+    })
+    .catch(error => console.error('Error generating Excel:', error));
+}
+
+
+
+// function downloadExcel() {
+//     const table = document.querySelector("table");
+//     const rows = Array.from(table.querySelectorAll("tbody tr")).filter(row => row.style.display !== 'none');
+//     const workbook = XLSX.utils.book_new();
+//     const data = [];
+
+//     // Extract data
+//     const headers = Array.from(table.querySelectorAll("thead th")).map(th => th.innerText.trim());
+//     data.push(headers);
+
+//     rows.forEach(row => {
+//         const rowData = Array.from(row.querySelectorAll("td")).map(td => td.innerText.trim());
+//         data.push(rowData);
+//     });
+
+//     const worksheet = XLSX.utils.aoa_to_sheet(data);
+//     XLSX.utils.book_append_sheet(workbook, worksheet, "Filtered Orders");
+
+//     XLSX.writeFile(workbook, "Filtered_Orders_Report.xlsx");
+// }
 
 
 //chart
 
-let myChartInstance = null;
+// let myChart;
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const chartData = `<%= JSON.stringify(chartData) %>`;
-        console.log('checking chart data front end',chartData);
-        renderChart(chartData);
-    });
+    // Initialize the chart with empty data
+    // function initializeChart() {
+    //     const ctx = document.getElementById('myChart').getContext('2d');
+    //     myChart = new Chart(ctx, {
+    //         type: 'line',  // You can change this to 'bar', 'line', 'pie', etc.
+    //         data: {
+    //             labels: [],  // This will be filled dynamically based on the data
+    //             datasets: [{
+    //                 label: 'Sales',
+    //                 data: [],  // This will also be updated dynamically
+    //                 borderColor: 'rgb(75, 192, 192)',
+    //                 backgroundColor: 'rgba(75, 192, 192, 0.2)',
+    //                 fill: false
+    //             }]
+    //         },
+    //         options: {
+    //             responsive: true,
+    //             scales: {
+    //                 x: {
+    //                     title: {
+    //                         display: true,
+    //                         text: 'Date'
+    //                     }
+    //                 },
+    //                 y: {
+    //                     title: {
+    //                         display: true,
+    //                         text: 'Sales Amount'
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     });
+    // }
 
-    function renderChart(chartData) {
-        console.log('checking rerenderchart chart data : ',chartData);
-        const ctx = document.getElementById('myChart').getContext('2d');
+    // Function to update the chart based on the selected filter
+    // Function to update the chart when a filter button is clicked
+function updateChart(filter) {
+    fetch(`/admin/update-chart/${filter}`)
+        .then(response => response.json())
+        .then(data => {
+            // Extract the sales data from the response
+            const salesData = data.salesData;
+            console.log('checking the chart data : ',salesData);
+            // Prepare the data for the chart
+            const labels = salesData.map(item => item.date);
+            console.log('checking the lables',labels);
+            const sales = salesData.map(item => item.totalSales);
+            console.log('checking the sales : ',sales);
 
-        if (myChartInstance) {
-            myChartInstance.destroy();
-        }
-
-        myChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: chartData.labels,
-                datasets: [{
-                    label: 'Sales',
-                    data: chartData.sales,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 2,
-                    fill: false,
-                }],
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: true,
-                    },
+            // Create or update the chart
+            const ctx = document.getElementById('myChart').getContext('2d');
+            const myChart = new Chart(ctx, {
+                type: 'line',  // or any other chart type
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Sales',
+                        data: sales,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        fill: true
+                    }]
                 },
-                scales: {
-                    x: { beginAtZero: true },
-                    y: { beginAtZero: true },
-                },
-            },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching sales data:', error);
         });
-    }
+}
 
-    window.updateChart = function(filter) {
-        fetch(`/admin/dashboard?filter=${filter}`)
-            .then(response => response.json())
-            .then(data => {
-                renderChart(data.chartData);
-            })
-            .catch(err => console.error('Error updating chart:', err));
-    };
+
+    // Initialize the chart when the page loads
+    // window.onload = function() {
+    //     initializeChart();
+    //     updateChart('today');  // You can set the default chart filter to 'today' or any other
+    // };
     
 
 </script>
