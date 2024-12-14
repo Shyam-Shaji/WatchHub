@@ -413,6 +413,7 @@ document.querySelectorAll('.remove-cart').forEach(button => {
 });
 
 //coupon
+
 document.getElementById('apply-coupon-btn').addEventListener('click', async () => {
     try {
         const response = await fetch('/getCoupons'); 
@@ -460,6 +461,25 @@ document.getElementById('apply-coupon-btn').addEventListener('click', async () =
     }
 });
 
+window.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const response = await fetch('/coupon-status');
+        const data = await response.json();
+
+        if (data.appliedCoupon) {
+            // If a coupon is applied, show the "Remove Coupon" button
+            document.getElementById('apply-coupon-btn').style.display = 'none';
+            document.getElementById('remove-coupon-btn').style.display = 'inline-block';
+        } else {
+            // If no coupon is applied, show the "Apply Coupon" button
+            document.getElementById('apply-coupon-btn').style.display = 'inline-block';
+            document.getElementById('remove-coupon-btn').style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error fetching coupon status:', error);
+    }
+});
+
 // Handle applying a coupon
 async function handleApplyCoupon(couponCode) {
     try {
@@ -471,6 +491,7 @@ async function handleApplyCoupon(couponCode) {
         console.log('checking response handleapplycoupon : ',response);
         const data = await response.json();
         console.log('checking data handleapplycoupon : ',data);
+        
         if (data.success) {
             Swal.fire({
                 icon: 'success',
@@ -478,9 +499,9 @@ async function handleApplyCoupon(couponCode) {
                 text: data.message || 'Coupon applied successfully',
             });
             console.log('success workinmg')
-            // document.getElementById('remove-coupon-btn').style.display = 'inline-block';
             document.getElementById('apply-coupon-btn').style.display = 'none';
-            document.getElementById
+            document.getElementById('remove-coupon-btn').style.display = 'inline-block';
+            location.reload();
         } else {
             Swal.fire({
                 icon: 'error',
@@ -488,6 +509,7 @@ async function handleApplyCoupon(couponCode) {
                 text: data.message || 'An error occurred while applying the coupon.',
             });
         }
+        
     } catch (error) {
         console.error('Error applying coupon:', error);
         Swal.fire({
@@ -505,13 +527,16 @@ document.getElementById('remove-coupon-btn').addEventListener('click', async () 
         const data = await response.json();
 
         if (data.success) {
+            
             Swal.fire({
                 icon: 'success',
                 title: 'Coupon Removed',
                 text: 'The coupon has been successfully removed.',
             });
+            
             document.getElementById('remove-coupon-btn').style.display = 'none';
             document.getElementById('apply-coupon-btn').style.display = 'inline-block';
+            location.reload();
         } else {
             Swal.fire({
                 icon: 'error',

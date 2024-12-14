@@ -70,7 +70,7 @@ router.get('/addToCart',cartController.addToCart);
 router.get('/cart',cartController.viewCart);
 router.post('/removeFromCart',cartController.removeCart);
 router.get('/updateQuantity',cartController.updateQuantity);
-
+router.get('/coupon-status',cartController.couponStatus);
 router.get('/getCoupons',cartController.getCoupon);
 router.post('/applyCoupon',cartController.applyCoupon);
 router.post('/removeCoupon',cartController.removeCoupon);

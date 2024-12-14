@@ -256,6 +256,19 @@ const getCoupon = async (req, res) => {
 //     }
 // };
 
+const couponStatus = async(req,res)=>{
+    try {
+        if(req.session.appliedCoupon){
+            res.json({appliedCoupon : req.session.appliedCoupon});
+        }else {
+            res.json({appliedCoupon : null});
+        }
+    } catch (error) {
+        console.error('couponStatus error: ',error);
+        res.status(500).json({success : false,message : "Failed to coupon status"});
+    }
+}
+
 const applyCoupon = async (req, res) => {
     try {
         const { couponCode } = req.body;
@@ -287,10 +300,6 @@ const applyCoupon = async (req, res) => {
 
         console.log('User session data:', user);
 
-       
-        // if (!user) {
-        //     return res.status(400).json({ success: false, message: "Invalid user data." });
-        // }
 
         
         const cart = await Cart.findOne({ userId: user });
@@ -345,6 +354,8 @@ const applyCoupon = async (req, res) => {
         
         await cart.save();
 
+        req.session.appliedCoupon = coupon.name;
+
        return res.status(200).json({
             success: true,
             discount : cart.discount,
@@ -370,17 +381,24 @@ const removeCoupon = async(req,res)=>{
             return res.status(404).json({success: false,message: 'Cart not found.' });
         }
 
-        if(!cart.discount || cart.discount <= 0){
-            return res.status(400).json({
-                success : false,
-                message : "No coupons is currently applied to the cart.",
-            })
-        }
-
-        cart.totalPrice += cart.discount;
         cart.discount = 0;
-
+        cart.totalPrice = cart.items.reduce((total, item) => total + item.totalPrice, 0);
+        cart.appliedCoupon = null;
         await cart.save();
+
+        req.session.appliedCoupon = null;
+
+        // if(!cart.discount || cart.discount <= 0){
+        //     return res.status(400).json({
+        //         success : false,
+        //         message : "No coupons is currently applied to the cart.",
+        //     })
+        // }
+
+        // cart.totalPrice += cart.discount;
+        // cart.discount = 0;
+
+        // await cart.save();
 
         res.status(200).json({
             success : true,
@@ -401,6 +419,7 @@ module.exports = {
     removeCart,
     updateQuantity,
     getCoupon,
+    couponStatus,
     applyCoupon,
     removeCoupon,
 }
