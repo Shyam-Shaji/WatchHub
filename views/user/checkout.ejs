@@ -16,10 +16,10 @@
             <!-- Login and Coupon Section -->
             <div class="row">
                 <div class="col-lg-6 mb-sm-15">
-                    <div class="toggle_info">
+                    <!-- <div class="toggle_info">
                         <span><i class="fi-rs-user mr-10"></i><span class="text-muted">Already have an account?</span>
                             <a href="#loginform" data-bs-toggle="collapse" class="collapsed" aria-expanded="false">Click here to login</a></span>
-                    </div>
+                    </div> -->
                     <div class="collapse login_form" id="loginform">
                         <form method="post">
                             <div class="form-group">
@@ -41,10 +41,10 @@
                 </div>
 
                 <div class="col-lg-6">
-                    <div class="toggle_info">
+                    <!-- <div class="toggle_info">
                         <span><i class="fi-rs-label mr-10"></i><span class="text-muted">Have a coupon?</span>
                             <a href="#coupon" data-bs-toggle="collapse" class="collapsed" aria-expanded="false">Click here to enter your code</a></span>
-                    </div>
+                    </div> -->
                     <div class="collapse coupon_form" id="coupon">
                         <form method="post">
                             <div class="form-group">
@@ -93,7 +93,7 @@
                             <% }) %>
                         </div>
                     <% } %>
-                    <a href="/add-address" class="btn btn-primary">Add Address</a>
+                    <a href="/loadAddressPage" class="btn btn-primary">Add Address</a>
                 </div>
 
                 <!-- Order Review and Payment Section -->
@@ -127,12 +127,12 @@
                                     </tr>
                                     <tr>
                                         <th>Discount</th>
-                                        <th colspan="2">-₹<%= discount %></th>
+                                        <th colspan="2">₹<%= discount %></th>
                                     </tr>
-                                    <tr>
+                                    <!-- <tr>
                                         <th>Shipping</th>
                                         <td colspan="2"><em>Free Shipping</em></td>
-                                    </tr>
+                                    </tr> -->
                                     <tr>
                                         <th>Total</th>
                                         <td colspan="2"><span class="font-xl text-brand fw-900">₹<%= totalAmount %></span></td>

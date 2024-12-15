@@ -41,49 +41,49 @@
                     <div class="card-body">
                         <form method="post" action="/admin/editProduct/<%= product._id %>" enctype="multipart/form-data"
                             onsubmit="return validateForm()">
-                          <div class="mb-4">
-                              <label for="product_name" class="form-label">Product Name</label>
-                              <input type="text" name="productName" value="<%= product.productName %>"
-                                     class="form-control border" id="product_name">
-                              <div id="productName-error" class="error-message"></div>
-                          </div>
-                      
-                          <div class="col-lg-4 mb-4">
-                              <label class="form-label">Brand</label>
-                              <select class="form-select border" name="brand">
-                                  <% for(let i = 0 ; i < brand.length ; i ++) {%>
-                                      <option value="<%= brand[i].brandName %>">
-                                          <%= brand[i].brandName %>
-                                      </option>
-                                  <% } %>   
-                              </select>
-                              <div id="brand-error" class="error-message"></div>
-                          </div>
-                      
-                          <div class="mb-4">
-                              <label class="form-label">Full description</label>
-                              <input name="description" value="<%= product.description %>" class="form-control border" rows="4">
-                              <div id="description-error" class="error-message"></div>
-                          </div>
-                      
-                          <div class="row">
-                              <div class="col-lg-4 mb-4">
-                                  <label class="form-label">Regular price</label>
-                                  <input name="regularPrice" type="text" value="<%= product.regularPrice %>" class="form-control border">
-                                  <div id="regularPrice-error" class="error-message"></div>
-                              </div>
-                      
-                              <div class="col-lg-4 mb-4">
-                                  <label class="form-label">Sale price</label>
-                                  <input name="salePrice" type="text" value="<%= product.salePrice %>" class="form-control border">
-                                  <div id="salePrice-error" class="error-message"></div>
-                              </div>
-                      
-                              <div class="col-lg-4 mb-4">
-                                  <label class="form-label">Quantity</label>
-                                  <input name="quantity" type="text" value="<%= product.quantity %>" class="form-control border">
-                                  <div id="quantity-error" class="error-message"></div>
-                              </div>
+                            <div class="mb-4">
+                                <label for="product_name" class="form-label">Product Name</label>
+                                <input type="text" name="productName" value="<%= product.productName %>" class="form-control border" id="product_name" oninput="sanitizeInput(this)">
+                                <div id="productName-error" class="error-message"></div>
+                            </div>
+                        
+                            <div class="col-lg-4 mb-4">
+                                <label class="form-label">Brand</label>
+                                <select class="form-select border" name="brand">
+                                    <% for(let i = 0; i < brand.length; i++) { %>
+                                        <option value="<%= brand[i].brandName %>">
+                                            <%= brand[i].brandName %>
+                                        </option>
+                                    <% } %>
+                                </select>
+                                <div id="brand-error" class="error-message"></div>
+                            </div>
+                        
+                            <div class="mb-4">
+                                <label class="form-label">Full description</label>
+                                <textarea name="description" class="form-control border" rows="4" id="description" oninput="sanitizeInput(this)"><%= product.description %></textarea>
+                                <div id="description-error" class="error-message"></div>
+                            </div>
+                        
+                            <div class="row">
+                                <div class="col-lg-4 mb-4">
+                                    <label class="form-label">Regular price</label>
+                                    <input name="regularPrice" type="text" value="<%= product.regularPrice %>" class="form-control border" oninput="validateNumberInput(this)">
+                                    <div id="regularPrice-error" class="error-message"></div>
+                                </div>
+                        
+                                <div class="col-lg-4 mb-4">
+                                    <label class="form-label">Sale price</label>
+                                    <input name="salePrice" type="text" value="<%= product.salePrice %>" class="form-control border" oninput="validateNumberInput(this)">
+                                    <div id="salePrice-error" class="error-message"></div>
+                                </div>
+                        
+                                <div class="col-lg-4 mb-4">
+                                    <label class="form-label">Quantity</label>
+                                    <input name="quantity" type="text" value="<%= product.quantity %>" class="form-control border" oninput="validateIntegerInput(this)">
+                                    <div id="quantity-error" class="error-message"></div>
+                                </div>
+                            </div>
                           </div>
                       
                           <div class="card mb-4">
@@ -136,7 +136,7 @@
                           </div>
                       
                           <div>
-                              <button class="btn btn-md rounded font-sm hover-up" id="updatebtn" type="submit">Update</button>
+                              <button class="btn btn-md rounded font-sm hover-up" id="updatebtn" type="submit" onclick="validateForm()">Update</button>
                           </div>
                       </form>
                     </div>
@@ -149,89 +149,91 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        function validateForm() {
-    clearErrorMessages();
-    
-    let isValid = true; // To track if the form is valid
 
-    // Trim and validate Product Name
-    const nameInput = document.getElementsByName('productName')[0];
-    const productName = nameInput.value.trim();
-    if (!productName) {
-        document.getElementById('productName-error').innerText = "Product name is required.";
-        isValid = false;
-    } else if (productName.length < 3) {
-        document.getElementById('productName-error').innerText = "Product name must be at least 3 characters.";
-        isValid = false;
+function sanitizeInput(input) {
+        input.value = input.value.replace(/\s+/g, ''); // Remove all white spaces
     }
-    nameInput.value = productName; // Update the field with trimmed value
-
-    // Trim and validate Description
-    const descriptionInput = document.getElementById('descriptionid');
-    const description = descriptionInput.value.trim();
-    if (!description) {
-        document.getElementById('description-error').innerText = "Description is required.";
-        isValid = false;
-    } else if (description.length < 10) {
-        document.getElementById('description-error').innerText = "Description must be at least 10 characters.";
-        isValid = false;
-    }
-    descriptionInput.value = description; // Update the field with trimmed value
-
-    // Validate Brand
-    const brand = document.getElementsByName('brand')[0].value;
-    if (!brand) {
-        document.getElementById('brand-error').innerText = "Please select a brand.";
-        isValid = false;
-    }
-
-    // Trim and validate Regular Price
-    const regularPriceInput = document.getElementsByName('regularPrice')[0];
-    const regularPrice = regularPriceInput.value.trim();
-    if (!regularPrice || isNaN(regularPrice) || parseFloat(regularPrice) <= 0) {
-        document.getElementById('regularPrice-error').innerText = "Regular price must be a positive number.";
-        isValid = false;
-    }
-    regularPriceInput.value = regularPrice;
-
-    // Trim and validate Sale Price
-    const salePriceInput = document.getElementsByName('salePrice')[0];
-    const salePrice = salePriceInput.value.trim();
-    if (salePrice && (isNaN(salePrice) || parseFloat(salePrice) <= 0)) {
-        document.getElementById('salePrice-error').innerText = "Sale price must be a positive number.";
-        isValid = false;
-    }
-    salePriceInput.value = salePrice;
-
-    // Trim and validate Quantity
-    const quantityInput = document.getElementsByName('quantity')[0];
-    const quantity = quantityInput.value.trim();
-    if (!quantity || isNaN(quantity) || parseInt(quantity) <= 0) {
-        document.getElementById('quantity-error').innerText = "Quantity must be a positive integer.";
-        isValid = false;
-    }
-    quantityInput.value = quantity;
-
-    return isValid;
-}
-
-function clearErrorMessages() {
-    const errorFields = document.querySelectorAll('.error-message');
-    errorFields.forEach(field => field.innerText = '');
-}
-    
-        function displayErrorMessage(elementId, message) {
-            const errorElement = document.getElementById(elementId);
-            errorElement.innerText = message;
-            errorElement.style.display = "block";
+    console.log('is it working product edit validation');
+    function validateNumberInput(input) {
+        input.value = input.value.replace(/[^0-9.]/g, ''); // Allow only digits and a single dot
+        if (input.value.includes('.')) {
+            let parts = input.value.split('.');
+            input.value = parts[0] + '.' + parts.slice(1).join(''); // Ensure only one dot
         }
-    
-        function clearErrorMessages() {
-            const errorElements = document.getElementsByClassName('error-message');
-            Array.from(errorElements).forEach(element => {
-                element.innerText = '';
-            });
+        if (parseFloat(input.value) < 0) {
+            input.value = ''; // Clear input if negative number is entered
         }
+    }
+
+    function validateIntegerInput(input) {
+        input.value = input.value.replace(/[^0-9]/g, ''); // Allow only digits
+        if (parseInt(input.value) < 0) {
+            input.value = ''; // Clear input if negative number is entered
+        }
+    }
+
+    function validateForm() {
+        clearErrorMessages();
+        let isValid = true;
+
+        // Validate Product Name
+        const nameInput = document.getElementsByName('productName')[0];
+        const productName = nameInput.value.trim();
+        if (!productName) {
+            displayErrorMessage('productName-error', "Product name is required.");
+            isValid = false;
+        } else if (productName.length < 3) {
+            displayErrorMessage('productName-error', "Product name must be at least 3 characters.");
+            isValid = false;
+        }
+
+        // Validate Description
+        const descriptionInput = document.getElementsByName('description')[0];
+        const description = descriptionInput.value.trim();
+        if (!description) {
+            displayErrorMessage('description-error', "Description is required.");
+            isValid = false;
+        } else if (description.length < 10) {
+            displayErrorMessage('description-error', "Description must be at least 10 characters.");
+            isValid = false;
+        }
+
+        // Validate Regular Price
+        const regularPriceInput = document.getElementsByName('regularPrice')[0];
+        const regularPrice = regularPriceInput.value.trim();
+        if (!regularPrice || isNaN(regularPrice) || parseFloat(regularPrice) <= 0) {
+            displayErrorMessage('regularPrice-error', "Regular price must be a positive number.");
+            isValid = false;
+        }
+
+        // Validate Sale Price
+        const salePriceInput = document.getElementsByName('salePrice')[0];
+        const salePrice = salePriceInput.value.trim();
+        if (salePrice && (isNaN(salePrice) || parseFloat(salePrice) <= 0)) {
+            displayErrorMessage('salePrice-error', "Sale price must be a positive number.");
+            isValid = false;
+        }
+
+        // Validate Quantity
+        const quantityInput = document.getElementsByName('quantity')[0];
+        const quantity = quantityInput.value.trim();
+        if (!quantity || isNaN(quantity) || parseInt(quantity) <= 0) {
+            displayErrorMessage('quantity-error', "Quantity must be a positive integer.");
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    function displayErrorMessage(elementId, message) {
+        const errorElement = document.getElementById(elementId);
+        errorElement.innerText = message;
+    }
+
+    function clearErrorMessages() {
+        const errorElements = document.querySelectorAll('.error-message');
+        errorElements.forEach(element => element.innerText = '');
+    }
     
         function viewImage(event, index) {
             const input = event.target;

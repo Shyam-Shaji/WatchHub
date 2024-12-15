@@ -160,25 +160,6 @@ const updateQuantity = async (req, res) => {
     }
 };
 
-// const getCoupon = async (req, res) => {
-//     try {
-//         const coupons = await Coupon.find({
-//             isList: true,
-//             expireOn: { $gte: new Date() },
-//         });
-//         console.log('checking coupons: ',coupons);
-
-//         if (!coupons || coupons.length === 0) {
-//             return res.status(404).json({ success: false, message: "No active coupons available." });
-//         }
-
-//         res.status(200).json({ success: true, coupons });
-//     } catch (error) {
-//         console.error("Error fetching coupons:", error.message);
-//         res.status(500).json({ success: false, message: "Failed to fetch coupons. Please try again later." });
-//     }
-// };
-
 const getCoupon = async (req, res) => {
     try {
         
@@ -214,47 +195,6 @@ const getCoupon = async (req, res) => {
         });
     }
 };
-
-
-
-
-// const applyCoupon = async (req, res) => {
-//     try {
-//         const { couponCode } = req.body;
-
-//         // Fetch the coupon
-//         const coupon = await Coupon.findOne({ code: couponCode, isList: true });
-//         if (!coupon) {
-//             return res.json({ success: false, message: "Invalid or expired coupon." });
-//         }
-
-//         const user = req.session.user;
-//         const cart = await Cart.findOne({ userId: user });
-
-//         if (!cart) {
-//             return res.json({ success: false, message: "Cart not found." });
-//         }
-
-//         // Validate minimum price
-//         if (cart.totalPrice < coupon.minimumPrice) {
-//             return res.json({
-//                 success: false,
-//                 message: `Coupon can only be applied for orders above ${coupon.minimumPrice}.`
-//             });
-//         }
-
-//         // Apply discount
-//         const discount = Math.min(coupon.offerPrice, cart.totalPrice); // Avoid negative total
-//         cart.discount = discount;
-//         cart.totalPrice -= discount;
-//         await cart.save();
-
-//         res.json({ success: true, discount: discount });
-//     } catch (error) {
-//         console.error("Error applying coupon: ", error);
-//         res.status(500).json({ success: false, message: "Failed to apply coupon." });
-//     }
-// };
 
 const couponStatus = async(req,res)=>{
     try {

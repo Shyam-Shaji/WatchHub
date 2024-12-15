@@ -32,12 +32,11 @@
                 <div class="card mb-4">
                     <div class="card-body">
                         <form method="post" action="/admin/addProducts" enctype="multipart/form-data"
-                            onsubmit="return validateForm()
- ">
+                            onsubmit="return validateForm()">
                             <div class="mb-4">
                                 <label for="product_name" class="form-label">Product Name</label>
                                 <input type="text" placeholder="Type here" name="productName"
-                                    class="form-control border" id="product_name">
+                                    class="form-control border" id="product_name" oninput="sanitizeInput(this)">
                                 <div id="productName-error" class="error-message"></div>
                             </div>
                             <div class="col-lg-4 mb-4">
@@ -59,7 +58,7 @@
                             <div class="mb-4">
                                 <label class="form-label">Full description</label>
                                 <textarea placeholder="Type here" id="descriptionid" name="description" class="form-control border"
-                                    rows="4"></textarea>
+                                    rows="4" oninput="sanitizeInput(this)"></textarea>
                                 <div id="description-error" class="error-message"></div>
                             </div>
                             <div class="row">
@@ -67,14 +66,14 @@
                                     <div class="mb-4">
                                         <label class="form-label">Regular price</label>
                                         <input placeholder="$" name="regularPrice" type="text"
-                                            class="form-control border">
+                                            class="form-control border" oninput="validateNumberInput(this)">
                                             <div id="regularPrice-error" class="error-message"></div>
                                     </div>
                                 </div>
                                 <div class="col-lg-4">
                                     <div class="mb-4">
                                         <label class="form-label">Sale price</label>
-                                        <input placeholder="$" name="salePrice" type="text" class="form-control border">
+                                        <input placeholder="$" name="salePrice" type="text" class="form-control border" oninput="validateNumberInput(this)">
                                        
                                     </div>
                                     <div id="salePrice-error" class="error-message"></div>
@@ -82,7 +81,7 @@
                                 <div class="col-lg-4">
                                     <div class="mb-4">
                                         <label class="form-label">Quantity</label>
-                                        <input placeholder="" name="quantity" type="text" class="form-control border">
+                                        <input placeholder="" name="quantity" type="text" class="form-control border" oninput="validateIntegerInput(this)">
                                         <div id="quantity-error" class="error-message"></div>
                                     </div>
                                 </div>
@@ -202,6 +201,23 @@
  <script>
 
     function validateAndSubmit(){
+
+        function validateImages() {
+    const input1 = document.getElementById('input1').files.length;
+    const input2 = document.getElementById('input2').files.length;
+    const input3 = document.getElementById('input3').files.length;
+    const input4 = document.getElementById('input4').files.length;
+    const errorDiv = document.getElementById('images-error');
+
+    if (input1 === 0 || input2 === 0 || input3 === 0 || input4 === 0) {
+        errorDiv.textContent = "Please upload all 4 images before submitting the form.";
+        return false; // Prevent form submission
+    } else {
+        errorDiv.textContent = ""; // Clear any existing error message
+        return true; // Allow form submission
+    }
+}
+
         if(validateForm()){
             document.forms[0].submit();
         }
@@ -303,33 +319,52 @@
         }
     }
 
+    function sanitizeInput(input){
+        input.value = input.value.replace(/\s+/g, '');
+    }
+
+    function validateNumberInput(input){
+        input.value = input.value.replace(/[^0-9.]/g,'');
+        if(input.value.includes('.')){
+            let parts = input.value.split('.');
+            input.value = parts[0] + '.' + parts.slice(1).join('');
+        }
+    }
+
+    function validateIntegerInput(input){
+        input.value = input.value.replace(/[^0-9]/g, '');
+        if(parseInt(input.value) < 0){
+            input.value = '';
+        }
+    }
+
     function validateForm() {
     clearErrorMessages();
     
-    let isValid = true; // To track if the form is valid
+    let isValid = true; 
 
     // Trim and validate Product Name
     const nameInput = document.getElementsByName('productName')[0];
-    const productName = nameInput.value.trim();
-    if (!productName) {
-        document.getElementById('productName-error').innerText = "Product name is required.";
-        isValid = false;
-    } else if (productName.length < 3) {
-        document.getElementById('productName-error').innerText = "Product name must be at least 3 characters.";
-        isValid = false;
-    }
+        const productName = nameInput.value.trim();
+        if (!productName) {
+            displayErrorMessage('productName-error', "Product name is required.");
+            isValid = false;
+        } else if (productName.length < 3) {
+            displayErrorMessage('productName-error', "Product name must be at least 3 characters.");
+            isValid = false;
+        }
     nameInput.value = productName; // Update the field with trimmed value
 
     // Trim and validate Description
-    const descriptionInput = document.getElementById('descriptionid');
-    const description = descriptionInput.value.trim();
-    if (!description) {
-        document.getElementById('description-error').innerText = "Description is required.";
-        isValid = false;
-    } else if (description.length < 10) {
-        document.getElementById('description-error').innerText = "Description must be at least 10 characters.";
-        isValid = false;
-    }
+    const descriptionInput = document.getElementsByName('description')[0];
+        const description = descriptionInput.value.trim();
+        if (!description) {
+            displayErrorMessage('description-error', "Description is required.");
+            isValid = false;
+        } else if (description.length < 10) {
+            displayErrorMessage('description-error', "Description must be at least 10 characters.");
+            isValid = false;
+        }
     descriptionInput.value = description; // Update the field with trimmed value
 
     // Validate Brand
@@ -341,38 +376,43 @@
 
     // Trim and validate Regular Price
     const regularPriceInput = document.getElementsByName('regularPrice')[0];
-    const regularPrice = regularPriceInput.value.trim();
-    if (!regularPrice || isNaN(regularPrice) || parseFloat(regularPrice) <= 0) {
-        document.getElementById('regularPrice-error').innerText = "Regular price must be a positive number.";
-        isValid = false;
-    }
+        const regularPrice = regularPriceInput.value.trim();
+        if (!regularPrice || isNaN(regularPrice) || parseFloat(regularPrice) <= 0) {
+            displayErrorMessage('regularPrice-error', "Regular price must be a positive number.");
+            isValid = false;
+        }
     regularPriceInput.value = regularPrice;
 
     // Trim and validate Sale Price
     const salePriceInput = document.getElementsByName('salePrice')[0];
-    const salePrice = salePriceInput.value.trim();
-    if (salePrice && (isNaN(salePrice) || parseFloat(salePrice) <= 0)) {
-        document.getElementById('salePrice-error').innerText = "Sale price must be a positive number.";
-        isValid = false;
-    }
+        const salePrice = salePriceInput.value.trim();
+        if (salePrice && (isNaN(salePrice) || parseFloat(salePrice) <= 0)) {
+            displayErrorMessage('salePrice-error', "Sale price must be a positive number.");
+            isValid = false;
+        }
     salePriceInput.value = salePrice;
 
     // Trim and validate Quantity
     const quantityInput = document.getElementsByName('quantity')[0];
-    const quantity = quantityInput.value.trim();
-    if (!quantity || isNaN(quantity) || parseInt(quantity) <= 0) {
-        document.getElementById('quantity-error').innerText = "Quantity must be a positive integer.";
-        isValid = false;
-    }
+        const quantity = quantityInput.value.trim();
+        if (!quantity || isNaN(quantity) || parseInt(quantity) <= 0) {
+            displayErrorMessage('quantity-error', "Quantity must be a positive integer.");
+            isValid = false;
+        }
     quantityInput.value = quantity;
 
     return isValid;
 }
 
-function clearErrorMessages() {
-    const errorFields = document.querySelectorAll('.error-message');
-    errorFields.forEach(field => field.innerText = '');
-}
+function displayErrorMessage(elementId, message) {
+        const errorElement = document.getElementById(elementId);
+        errorElement.innerText = message;
+    }
+
+    function clearErrorMessages() {
+        const errorElements = document.querySelectorAll('.error-message');
+        errorElements.forEach(element => element.innerText = '');
+    }
 
 
 

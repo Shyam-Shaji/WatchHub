@@ -83,19 +83,24 @@
     <div class="card-body">
       <div class="row">
         <div class="col-md-4">
-          <form method="post" action="/admin/addBrand" enctype="multipart/form-data">
+          <form method="post" action="/admin/addBrand" enctype="multipart/form-data" onsubmit="return validateForm()"<form method="post" action="/admin/addBrand" enctype="multipart/form-data" onsubmit="return validateForm()">
             <div class="mb-4">
               <label for="brand_name" class="form-label">Brand Name</label>
               <input type="text" name="name" placeholder="Type here" class="form-control" id="brand_name" />
+              <div id="brand-name-error" class="text-danger mt-2"></div>
             </div>
+          
             <label for="brand_image" class="form-label">Brand Image</label>
             <div class="input-upload">
-              <input class="form-control border" name="image" type="file" />
+              <input class="form-control border" name="image" type="file" id="brand_image" />
+              <div id="brand-image-error" class="text-danger mt-2"></div>
             </div>
+          
             <div class="d-grid">
               <button class="btn btn-primary mt-3" type="submit">Add Brand</button>
             </div>
           </form>
+          
         </div>
 
         <div class="col-md-8">
@@ -128,9 +133,9 @@
                   <td class="text-end">
                     <div class="d-flex justify-content-end gap-2">
                       <!-- View Details Button -->
-                      <a href="#" class="btn btn-primary btn-sm">
+                      <!-- <a href="#" class="btn btn-primary btn-sm">
                         View
-                      </a>
+                      </a> -->
                   
                       <!-- Block/Unblock Button -->
                       <% if (brand.isBlocked === false) { %>
@@ -208,6 +213,35 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+
+function validateForm() {
+  const brandName = document.getElementById('brand_name').value.trim();
+  const brandImage = document.getElementById('brand_image').files.length;
+  const brandNameError = document.getElementById('brand-name-error');
+  const brandImageError = document.getElementById('brand-image-error');
+
+  let isValid = true;
+
+  
+  if (!/^[A-Za-z]+$/.test(brandName)) {
+    brandNameError.textContent = "Brand name must contain only letters and no spaces.";
+    isValid = false;
+  } else {
+    brandNameError.textContent = "";
+  }
+
+  
+  if (brandImage === 0) {
+    brandImageError.textContent = "Please upload a brand image.";
+    isValid = false;
+  } else {
+    brandImageError.textContent = "";
+  }
+
+  return isValid; 
+}
+
+
   function confirmDelete(brandId) {
     Swal.fire({
       title: 'Are you sure?',

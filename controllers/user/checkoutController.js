@@ -3,6 +3,7 @@ const Cart = require('../../models/cartSchema');
 const Product = require('../../models/productSchema');
 const Address = require('../../models/addressSchema');
 const Order = require('../../models/orderSchema');
+const Coupon = require('../../models/cuponSchema');
 
 const Razorpay = require('razorpay');
 require('dotenv').config();
