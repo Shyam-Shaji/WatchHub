@@ -8,12 +8,12 @@ const addToCart = async (req, res) => {
     try {
         const userId = req.session.user;
         const productId = req.query.id;
-        const maxQuantityPerUser = 5; // Define the max quantity allowed per user per product
+        const maxQuantityPerUser = 5; 
 
         if (!userId) return res.status(401).json({ message: 'Please log in to add items to your cart.' });
 
         let cart = await Cart.findOne({ userId });
-        if (!cart) cart = new Cart({ userId, items: [] });
+        if (!cart) cart = new Cart({ userId, items: [], discount: 0, totalPrice: 0 });
 
         const productIndex = cart.items.findIndex(item => item.productId.toString() === productId);
         const product = await Product.findById(productId);
@@ -46,6 +46,10 @@ const addToCart = async (req, res) => {
                 totalPrice: product.salePrice,
             });
         }
+
+        cart.totalPrice = cart.items.reduce((acc, item) => acc + item.totalPrice, 0);
+        cart.discount = 0;
+        cart.appliedCoupon = null;
 
         await cart.save();
         res.status(200).json({ message: 'Product added to cart successfully' });
@@ -129,34 +133,39 @@ const updateQuantity = async (req, res) => {
     const userId = req.session.user;
 
    
-    let cart = await Cart.findOne({ userId }).populate('items.productId');
-    const item = cart.items.find(i => i.productId._id.toString() === productId);
-    console.log('product;',item.productId)
-    if (item) {
-        if (action === 'increase') {
-            if (item.quantity < item.productId.quantity) { 
-                item.quantity += 1;
-                console.log('itemquantity:',item.quantity, 'itemproductquantitys',item.productId.quantity)
-            } else {
-                console.log('respose increase error working')
-                return res.json({ success: false, message: "Quantity limit reached." });
+    try {
+        let cart = await Cart.findOne({ userId }).populate('items.productId');
+        const item = cart.items.find(i => i.productId._id.toString() === productId);
+
+        if (item) {
+            if (action === 'increase') {
+                if (item.quantity < item.productId.quantity) { 
+                    item.quantity += 1;
+                } else {
+                    return res.json({ success: false, message: "Quantity limit reached." });
+                }
+            } else if (action === 'decrease') {
+                if (item.quantity > 1) { 
+                    item.quantity -= 1; 
+                } else {
+                    return res.json({ success: false, message: "Minimum quantity reached." });
+                }
             }
-        } else if (action === 'decrease') {
-            if (item.quantity > 1) { 
-                item.quantity -= 1; 
-            } else {
-                return res.json({ success: false, message: "Minimum quantity reached." });
-            }
+
+            item.totalPrice = item.quantity * item.price;
+            cart.totalPrice = cart.items.reduce((acc, i) => acc + i.totalPrice, 0);
+            cart.discount = 0;
+            cart.appliedCoupon = null;
+
+            await cart.save();
+
+            res.json({ success: true, newQuantity: item.quantity, newSubtotal: item.totalPrice, newTotal: cart.totalPrice });
+        } else {
+            res.json({ success: false, message: "Item not found in cart." });
         }
-
-       
-        item.totalPrice = item.quantity * item.price; 
-        await cart.save(); 
-
-        
-        res.json({ success: true, newQuantity: item.quantity, newSubtotal: item.totalPrice });
-    } else {
-        res.json({ success: false, message: "Item not found in cart." });
+    } catch (error) {
+        console.error('Error updating quantity:', error);
+        res.status(500).json({ success: false, message: "Server error." });
     }
 };
 
@@ -278,6 +287,7 @@ const applyCoupon = async (req, res) => {
 
       
         const discount = Math.min(coupon.offerPrice, cartTotalPrice);
+        
         console.log('checking the discount in the cart after coupon applied',discount);
         if (discount <= 0) {
             return res.status(400).json({
@@ -327,18 +337,6 @@ const removeCoupon = async(req,res)=>{
         await cart.save();
 
         req.session.appliedCoupon = null;
-
-        // if(!cart.discount || cart.discount <= 0){
-        //     return res.status(400).json({
-        //         success : false,
-        //         message : "No coupons is currently applied to the cart.",
-        //     })
-        // }
-
-        // cart.totalPrice += cart.discount;
-        // cart.discount = 0;
-
-        // await cart.save();
 
         res.status(200).json({
             success : true,

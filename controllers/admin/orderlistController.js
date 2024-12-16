@@ -6,22 +6,35 @@ const Product = require('../../models/productSchema')
 const orderList = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1; 
-        const limit = 50;
+        const limit = 10;
         const skip = (page - 1) * limit;
 
         
         const orders = await Order.find()
             .populate('userId', 'name email')
-            .populate('items.product')
+            .populate('items.product','productName')
+            .sort({ createdAt: -1 })
             .limit(limit)
             .skip(skip);
+
+            const formattedOrders = orders.map(order => {
+                return {
+                    ...order.toObject(),
+                    items: order.items.map(item => ({
+                        productId: item.product._id,
+                        productName: item.product.productName,
+                        quantity: item.quantity,
+                        price: item.price
+                    }))
+                };
+            });
 
         
         const totalOrders = await Order.countDocuments();
         const totalPages = Math.ceil(totalOrders / limit);
 
         res.render('order-list', {
-            orders,
+            orders : formattedOrders,
             currentPage: page,
             totalPages,
         });

@@ -13,6 +13,7 @@
                             <th>#ID</th>
                             <th>Name</th>
                             <th>Email</th>
+                            <th>Product Name</th> 
                             <th>Total</th>
                             <th>Status</th>
                             <th>Return Status</th>
@@ -27,7 +28,16 @@
                                     <td class="fw-bold"><%= order._id %></td>
                                     <td><b><%= order.userId.name %></b></td>
                                     <td><%= order.userId.email %></td>
-                                    <td class="text-success fw-semibold">$<%= order.totalAmount.toFixed(2) %></td>
+                                    
+                                    <!-- Loop through items to display product names -->
+                                    <td>
+                                        <% order.items.forEach((item) => { %>
+                                            <div><%= item.productName %></div>
+                                        <% }); %>
+                                    </td>
+                
+                                    <td class="text-success fw-semibold">₹<%= order.totalAmount.toFixed(2) %></td>
+                
                                     <!-- Status Dropdown -->
                                     <td>
                                         <form id="statusForm-<%= order._id %>" method="POST">
@@ -40,6 +50,7 @@
                                             </select>
                                         </form>
                                     </td>
+                
                                     <!-- Return Status Column -->
                                     <td>
                                         <% if (order.status === 'Return Requested') { %>
@@ -58,6 +69,7 @@
                                             <span class="text-muted">No Return</span>
                                         <% } %>
                                     </td>
+                
                                     <td><%= new Date(order.createdAt).toLocaleDateString() %></td>
                                     <td class="text-end">
                                         <% if (order.status === 'Cancelled') { %>
@@ -74,11 +86,12 @@
                             <% }); %>
                         <% } else { %>
                             <tr>
-                                <td colspan="8" class="text-center text-muted">No orders found</td>
+                                <td colspan="9" class="text-center text-muted">No orders found</td>
                             </tr>
                         <% } %>
                     </tbody>
                 </table>
+                
             </div>
 
             <!-- Pagination Controls -->

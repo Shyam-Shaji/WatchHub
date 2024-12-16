@@ -1,5 +1,29 @@
 <%- include('../partials/admin/admin-header.ejs') %>
 
+<style>
+    .charts-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px;
+}
+
+.chart-card {
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    width: 100%;
+    max-width: 800px;
+}
+
+.chart-container {
+    position: relative;
+    height: 400px;
+}
+
+</style>
+
 
 <section class="content-main">
     <div class="content-header">
@@ -69,7 +93,7 @@
     <div class="row">
         <div class="col-xl-8 col-lg-12">
             <div class="card mb-4">
-                <article class="card-body">
+                <div class="card-body">
                     <h5 class="card-title">Sale Statistics</h5>
                     <div class="d-flex mb-3">
                         <button class="btn btn-primary me-2" onclick="updateChart('today')">Today</button>
@@ -77,8 +101,10 @@
                         <button class="btn btn-success me-2" onclick="updateChart('monthly')">Monthly</button>
                         <button class="btn btn-info" onclick="updateChart('yearly')">Yearly</button>
                     </div>
-                    <canvas id="myChart" height="120px"></canvas>
-                </article>
+                    <div class="chart-container">
+                        <canvas id="performance-chart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -272,6 +298,8 @@
     
     
 </section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -484,23 +512,41 @@ function downloadExcel() {
 
     // Function to update the chart based on the selected filter
     // Function to update the chart when a filter button is clicked
+// Global chart variable
+let performanceChart = null;
+
 function updateChart(filter) {
     fetch(`/admin/update-chart/${filter}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
-            // Extract the sales data from the response
-            const salesData = data.salesData;
-            console.log('checking the chart data : ',salesData);
-            // Prepare the data for the chart
-            const labels = salesData.map(item => item.date);
-            console.log('checking the lables',labels);
-            const sales = salesData.map(item => item.totalSales);
-            console.log('checking the sales : ',sales);
+            if (!data.salesData || data.salesData.length === 0) {
+                throw new Error('No sales data available for the selected period');
+            }
 
-            // Create or update the chart
-            const ctx = document.getElementById('myChart').getContext('2d');
-            const myChart = new Chart(ctx, {
-                type: 'line',  // or any other chart type
+            const salesData = data.salesData;
+            console.log('Chart data received:', salesData);
+
+            const labels = salesData.map(item => item.date);
+            const sales = salesData.map(item => item.totalSales);
+
+            console.log('Labels:', labels);
+            console.log('Sales:', sales);
+
+            const ctx = document.getElementById('performance-chart').getContext('2d');
+
+            // Destroy the existing chart if it exists
+            if (performanceChart) {
+                performanceChart.destroy();
+            }
+
+            // Create a new chart
+            performanceChart = new Chart(ctx, {
+                type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
@@ -508,26 +554,65 @@ function updateChart(filter) {
                         data: sales,
                         borderColor: 'rgba(75, 192, 192, 1)',
                         backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1,
                         fill: true
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Sales Amount'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Sales: $${context.parsed.y.toLocaleString()}`;
+                                }
+                            }
+                        }
+                    }
                 }
             });
         })
         .catch(error => {
-            console.error('Error fetching sales data:', error);
+            console.error('Error fetching or processing sales data:', error);
+
+            const ctx = document.getElementById('performance-chart').getContext('2d');
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.font = '16px Arial';
+            ctx.fillStyle = 'red';
+            ctx.textAlign = 'center';
+            ctx.fillText('Error loading chart data', ctx.canvas.width / 2, ctx.canvas.height / 2);
         });
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+    updateChart('today');
+});
 
-    // Initialize the chart when the page loads
-    // window.onload = function() {
-    //     initializeChart();
-    //     updateChart('today');  // You can set the default chart filter to 'today' or any other
-    // };
     
 
 </script>

@@ -189,79 +189,99 @@ const generateSalesReport = async (req, res) => {
     }
 };
 
-const updateChartData = async(req,res)=>{
+const updateChartData = async (req, res) => {
     try {
-        const filter = req.params.filter;  // Get the filter from URL parameter
-        console.log('checking the chart dat : backend',filter);
-        const filterCriteria = { status: "Completed" };  // Filter for only completed orders
+        const filter = req.params.filter;
+        console.log('Chart filter received:', filter);
 
-        // Initialize a variable to hold the sales data for the chart
-        let salesData = [];
+        // Base filter criteria
+        const filterCriteria = { status: "Completed" };
 
-        // Apply the filter criteria based on the selected filter
-        if (filter === "today") {
-            const startOfDay = moment().startOf('day').toDate();
-            const endOfDay = moment().endOf('day').toDate();
-            filterCriteria.orderDate = { $gte: startOfDay, $lte: endOfDay };
-        } else if (filter === "weekly") {
-            const startOfWeek = moment().startOf('week').toDate();
-            const endOfWeek = moment().endOf('week').toDate();
-            filterCriteria.orderDate = { $gte: startOfWeek, $lte: endOfWeek };
-        } else if (filter === "monthly") {
-            const startOfMonth = moment().startOf('month').toDate();
-            const endOfMonth = moment().endOf('month').toDate();
-            filterCriteria.orderDate = { $gte: startOfMonth, $lte: endOfMonth };
-        } else if (filter === "yearly") {
-            const startOfYear = moment().startOf('year').toDate();
-            const endOfYear = moment().endOf('year').toDate();
-            filterCriteria.orderDate = { $gte: startOfYear, $lte: endOfYear };
+        // Dynamic date filtering based on selected period
+        const now = moment();
+        switch (filter) {
+            case 'today':
+                filterCriteria.orderDate = {
+                    $gte: now.startOf('day').toDate(),
+                    $lte: now.endOf('day').toDate()
+                };
+                break;
+            case 'weekly':
+                filterCriteria.orderDate = {
+                    $gte: now.startOf('isoWeek').toDate(),
+                    $lte: now.endOf('isoWeek').toDate()
+                };
+                break;
+            case 'monthly':
+                filterCriteria.orderDate = {
+                    $gte: now.startOf('month').toDate(),
+                    $lte: now.endOf('month').toDate()
+                };
+                break;
+            case 'yearly':
+                filterCriteria.orderDate = {
+                    $gte: now.startOf('year').toDate(),
+                    $lte: now.endOf('year').toDate()
+                };
+                break;
+            default:
+                return res.status(400).json({ error: 'Invalid filter' });
         }
 
-        // Fetch sales data based on filter criteria
-        const orders = await Order.aggregate([
+        // Aggregation pipeline with comprehensive grouping
+        const salesData = await Order.aggregate([
             { $match: filterCriteria },
-            { $unwind: "$items" },
-            {
-                $lookup: {
-                    from: "products",
-                    localField: "items.product",
-                    foreignField: "_id",
-                    as: "productDetails"
-                }
-            },
-            { $unwind: "$productDetails" },
             {
                 $group: {
                     _id: {
-                        day: { $dayOfYear: "$orderDate" },
-                        month: { $month: "$orderDate" },
                         year: { $year: "$orderDate" },
+                        month: { $month: "$orderDate" },
+                        day: filter === 'yearly' ? null : { $dayOfMonth: "$orderDate" }
                     },
                     totalSales: { $sum: "$totalAmount" }
                 }
             },
             {
-                $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 }
+                $sort: {
+                    "_id.year": 1,
+                    "_id.month": 1,
+                    ...(filter !== 'yearly' ? { "_id.day": 1 } : {})
+                }
             }
         ]);
 
-        console.log('checking the orders updatechart: ',orders);
+        // Transform data for frontend
+        const formattedSalesData = salesData.map(item => {
+            if (filter === 'yearly') {
+                return {
+                    date: moment().month(item._id.month - 1).format('MMM'),
+                    totalSales: item.totalSales
+                };
+            } else {
+                const day = item._id.day || 1;
+                return {
+                    date: `${item._id.month}/${day}/${item._id.year}`,
+                    totalSales: item.totalSales
+                };
+            }
+        });
 
-        // Prepare the data for the chart
-        salesData = orders.map(order => ({
-            date: `${order._id.month}/${order._id.day}/${order._id.year}`,
-            totalSales: order.totalSales
-        }));
+        // Check if any data was found
+        if (formattedSalesData.length === 0 && filter !== 'yearly') {
+            return res.status(404).json({ error: 'No sales data found for the selected period' });
+        }
+        
+        console.log('Formatted Sales Data:', formattedSalesData);
 
-        console.log('checking the sales data backend: ',salesData);
-
-        // Send the sales data to the client
-        res.json({ salesData });
+        // Send response
+        res.status(200).json({ salesData: formattedSalesData });
     } catch (error) {
-        console.error('Error updating chart data:', error);
-        res.status(500).send('Error updating chart data');
+        console.error('Error in updateChartData:', error);
+        res.status(500).json({ error: 'Failed to fetch sales data', details: error.message });
     }
-}
+};
+
+
 
 
 
