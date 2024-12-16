@@ -5,6 +5,8 @@ const Cart = require('../../models/cartSchema');
 const Wallet = require('../../models/walletSchema');
 const mongoose = require('mongoose');
 const crypto = require('crypto');
+const PDFDocument = require('pdfkit');
+const path = require('path');
 const {Types} = require('mongoose');
 const { applyCoupon } = require('./cartController');
 
@@ -309,7 +311,16 @@ const getInvoicePage = async(req,res)=>{
     try {
 
         const user = req.session.user;
+
+        if(!user){
+            return res.status(400).send('User session not found');
+        }
+
         const userData = await User.findOne({_id : user});
+
+        if(!userData){
+            return res.status(404).send('User not found');
+        }
 
         const orderId = req.params.id;
         const order = await Order.findById(orderId).populate('items.product');
@@ -318,7 +329,44 @@ const getInvoicePage = async(req,res)=>{
             return res.status(404).send('Order not found');
         }
 
-        res.render('invoice',{user : userData,order});
+        const doc = new PDFDocument();
+        
+
+        res.setHeader('Content-Disposition',`attachment; filename=invoice-${orderId}.pdf`);
+        res.setHeader('Content-Type','application/pdf');
+
+        doc.pipe(res);
+
+        doc.fontSize(20).text('Invoice',{align : 'center'});
+        doc.moveDown();
+
+        doc.fontSize(12).text(`Order ID : ${order._id}`);
+        doc.text(`Customer : ${userData.name}`);
+        doc.text(`Date: ${order.orderDate.toDateString()}`);
+
+        doc.moveDown();
+
+        doc.fontSize(12).text('product',50, doc.y, {width : 200, continued : true});
+        doc.text('Quantity', 300, doc.y, {width : 100, continued :true});
+        doc.text('Price',400, doc.y);
+        doc.moveDown();
+
+        doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+        doc.moveDown();
+
+        order.items.forEach((item)=>{
+            doc.text(item.product.productName, 50, doc.y, {width : 200, continued : true});
+            doc.text(item.quantity.toString(), 300, doc.y, {width : 100, continued : true});
+            doc.text(`${item.product.salePrice}`,400,doc.y);
+            doc.moveDown();
+        });
+
+        doc.moveDown();
+        doc.fontSize(14).text(`Total : $${order.totalAmount}`, {align : 'right'});
+
+        doc.end();
+
+        // res.render('invoice',{user : userData,order});
         
     } catch (error) {
         console.error('Error generating invoice',error);
