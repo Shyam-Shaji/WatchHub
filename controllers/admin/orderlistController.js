@@ -13,7 +13,7 @@ const orderList = async (req, res) => {
         const orders = await Order.find()
             .populate('userId', 'name email')
             .populate('items.product','productName')
-            .sort({ createdAt: -1 })
+            .sort({ orderDate: -1 })
             .limit(limit)
             .skip(skip);
 
@@ -24,7 +24,8 @@ const orderList = async (req, res) => {
                         productId: item.product._id,
                         productName: item.product.productName,
                         quantity: item.quantity,
-                        price: item.price
+                        price: item.price,
+                        itemStatus: item.itemStatus
                     }))
                 };
             });

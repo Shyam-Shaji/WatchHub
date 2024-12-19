@@ -40,7 +40,7 @@ const viewOrder = async (req, res) => {
 
         const orders = await Order.find({ userId })
             .populate('items.product', 'productImage productName')
-            .sort({ createdAt: -1 })
+            .sort({ orderDate: -1 })
             .skip(skip)
             .limit(limit);
 
@@ -250,6 +250,103 @@ const orderCancell = async (req, res) => {
     }
 };
 
+const cancelOrderItem = async (req, res) => {
+    const { orderId, itemId } = req.params;
+    const userId = req.session.user;
+
+    try {
+        // Find the order
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found',
+            });
+        }
+
+        // Find the specific item in the order
+        const itemIndex = order.items.findIndex(item => item._id.toString() === itemId);
+
+        console.log('checking the itemsIndex from the cancelOrderItem controller : ', itemId);
+        
+        if (itemIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                message: 'Item not found in the order',
+            });
+        }
+
+        const item = order.items[itemIndex];
+
+        // Check if item is already cancelled
+        if (item.itemStatus === 'Cancelled') {
+            return res.status(400).json({
+                success: false,
+                message: 'Item is already cancelled',
+            });
+        }
+
+        // Update item status
+        item.itemStatus = 'Cancelled';
+
+        // Calculate refund for this specific item
+        const refundAmount = item.price * item.quantity;
+
+        // Update wallet
+        let wallet = await Wallet.findOne({ userId });
+        if (!wallet) {
+            wallet = await Wallet.create({
+                userId,
+                walletBalance: 0,
+                transactions: [],
+            });
+        }
+
+        wallet.walletBalance += refundAmount;
+        wallet.transactions.push({
+            date: new Date(),
+            description: `Refund for cancelled item ${itemId} in order ${orderId}`,
+            amount: refundAmount,
+            transactionType: 'Credit',
+            status: 'Completed',
+        });
+
+        await wallet.save();
+
+        // Restore product quantity
+        await Product.findByIdAndUpdate(item.product, { 
+            $inc: { quantity: item.quantity } 
+        });
+
+        // Check if all items are cancelled
+        const allItemsCancelled = order.items.every(
+            orderItem => orderItem._id.toString() === itemId || orderItem.itemStatus === 'Cancelled'
+        );
+
+        if (allItemsCancelled) {
+            order.status = 'Cancelled';
+        }
+
+        await order.save();
+
+        return res.json({
+            success: true,
+            message: 'Item cancelled successfully',
+            refundAmount,
+            walletBalance: wallet.walletBalance,
+        });
+
+    } catch (error) {
+        console.error('Error cancelling order item:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'An error occurred while cancelling the item',
+            errorDetails: error.message
+        });
+    }
+};
+
 const returnOrder = async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -300,6 +397,79 @@ const returnOrder = async (req, res) => {
         });
     } catch (error) {
         console.error('Error processing return order:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'An error occurred while processing the return request.',
+        });
+    }
+};
+
+const returnOrderItem = async (req, res) => {
+    const { orderId, itemId } = req.params;
+    const { reason } = req.body;
+
+    try {
+        // Validate input
+        if (!reason || !reason.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Return reason is required.',
+            });
+        }
+
+        // Find the order
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found.',
+            });
+        }
+
+        // Find the specific item in the order
+        const itemIndex = order.items.findIndex(item => item._id.toString() === itemId);
+        
+        if (itemIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                message: 'Item not found in the order',
+            });
+        }
+
+        const item = order.items[itemIndex];
+
+        // Check if item is already cancelled or returned
+        if (item.itemStatus === 'Cancelled' || item.itemStatus === 'Returned') {
+            return res.status(400).json({
+                success: false,
+                message: `Item is already ${item.itemStatus.toLowerCase()}.`,
+            });
+        }
+
+        // Update item status
+        item.itemStatus = 'Returned';
+        item.returnReason = reason;
+        item.returnDate = new Date();
+
+        // Check if all items are returned
+        const allItemsReturned = order.items.every(
+            orderItem => orderItem._id.toString() === itemId || orderItem.itemStatus === 'Returned'
+        );
+
+        if (allItemsReturned) {
+            order.status = 'Returned';
+        }
+
+        await order.save();
+
+        return res.status(200).json({
+            success: true,
+            message: 'Item return request processed successfully.',
+        });
+
+    } catch (error) {
+        console.error('Error processing return order item:', error);
         return res.status(500).json({
             success: false,
             message: 'An error occurred while processing the return request.',
@@ -483,7 +653,9 @@ module.exports = {
     viewOrder,
     createOrder,
     orderCancell,
+    cancelOrderItem,
     returnOrder,
+    returnOrderItem,
     getInvoicePage,
     retryPayment,
     verifyRetryPayment,

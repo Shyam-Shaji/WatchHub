@@ -101,10 +101,15 @@
                                                 <td><%= index + 1 %></td>
                                                 <td><%= order.orderDate.toDateString() %></td>
                                                 <td>
-                                                    <span class="badge <%= order.status === 'Cancelled' ? 'bg-danger' : order.status === 'Returned' ? 'bg-warning' : 'bg-success' %>">
-                                                        <%= order.status %>
+                                                    <span class="badge 
+                                                        <%= order.items.every(item => item.itemStatus === 'Cancelled') ? 'bg-danger' : 
+                                                            order.status === 'Cancelled' ? 'bg-danger' : 
+                                                            order.status === 'Returned' ? 'bg-warning' : 
+                                                            'bg-success' %>">
+                                                        <%= order.items.every(item => item.itemStatus === 'Cancelled') ? 'Cancelled' : order.status %>
                                                     </span>
                                                 </td>
+                                                
                                                 <td>
                                                     <% order.items.forEach(item => { %>
                                                         <div class="d-flex mb-2 align-items-center">
@@ -131,32 +136,47 @@
                                                 <td><strong>$<%= order.totalAmount %></strong></td>
                                                 <td>
                                                     <div class="d-flex flex-wrap gap-2">
+                                                        <!-- View Details Button -->
                                                         <a class="btn btn-sm btn-primary" href="/orderDetail/<%= order._id %>">View Details</a>
+                                                    
+                                                        <!-- Invoice Button (Shown if status is 'Completed') -->
                                                         <% if (order.status === 'Completed') { %>
                                                             <a class="btn btn-sm btn-info" href="/invoice/<%= order._id %>">Invoice</a>
                                                         <% } %>
-                                                        
-                                                
-                                                        <% if (order.status === 'Completed') { %>
-                                                            <!-- Show Return Button if status is 'Completed' -->
-                                                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#returnModal" data-order-id="<%= order.orderId %>">
-                                                                Return
-                                                            </button>
-                                                        <% } else if (order.status === 'Payment Pending') { %>
-                                                            <!-- Show Retry Payment Button if status is 'Payment Pending' -->
-                                                            <button class="btn btn-sm btn-secondary" onclick="retryPayment('<%= order._id %>')">
-                                                                Retry Payment
-                                                            </button>
-                                                        <% } else if (order.status !== 'Cancelled' && order.status !== 'Returned') { %>
-                                                            <!-- Show Cancel Button for all other statuses except 'Cancelled' and 'Returned' -->
-                                                            <button class="btn btn-sm btn-danger" onclick="cancelOrder('<%= order._id %>')">
-                                                                Cancel
-                                                            </button>
+                                                    
+                                                        <!-- Check if all items in the order are cancelled -->
+                                                        <% if (order.items.every(item => item.itemStatus === 'Cancelled')) { %>
+                                                            <span class="text-muted">Cancelled</span>
                                                         <% } else { %>
-                                                            <!-- Show status as text if the order is 'Cancelled' or 'Returned' -->
-                                                            <span class="text-muted"><%= order.status %></span>
+                                                            <!-- Return Button (Shown if status is 'Completed') -->
+                                                            <% if (order.status === 'Completed') { %>
+                                                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#returnModal" data-order-id="<%= order._id %>">
+                                                                    Return
+                                                                </button>
+                                                            <% } %>
+                                                    
+                                                            <!-- Retry Payment Button (Shown if status is 'Payment Pending') -->
+                                                            <% if (order.status === 'Payment Pending') { %>
+                                                                <button class="btn btn-sm btn-secondary" onclick="retryPayment('<%= order._id %>')">
+                                                                    Retry Payment
+                                                                </button>
+                                                            <% } %>
+                                                    
+                                                            <!-- Cancel Button (Shown for statuses other than 'Cancelled' and 'Returned') -->
+                                                            <% if (order.status !== 'Cancelled' && order.status !== 'Returned' && order.status !== 'Completed' && order.status !== 'Payment Pending') { %>
+                                                                <button class="btn btn-sm btn-danger" onclick="cancelOrder('<%= order._id %>')">
+                                                                    Cancel
+                                                                </button>
+                                                            <% } %>
+                                                    
+                                                            <!-- Display status as text if the order is 'Cancelled' or 'Returned' -->
+                                                            <% if (order.status === 'Cancelled' || order.status === 'Returned') { %>
+                                                                <span class="text-muted"><%= order.status %></span>
+                                                            <% } %>
                                                         <% } %>
                                                     </div>
+                                                    
+                                                    
                                                 </td>
                                                 
                                                 
@@ -262,8 +282,8 @@
             .then(data => {
                 console.log('parsed data: ',data);
                 if (data.success) {
-                    document.getElementById(`status-${orderId}`).innerText = 'Status: Cancelled';
                     Swal.fire('Cancelled!', 'Your order has been cancelled successfully.', 'success');
+                    document.getElementById(`status-${orderId}`).innerText = 'Status: Cancelled';
                 } else {
                     Swal.fire('Failed!', 'Failed to cancel the order.', 'error');
                 }

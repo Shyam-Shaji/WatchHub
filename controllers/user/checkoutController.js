@@ -3,6 +3,7 @@ const Cart = require('../../models/cartSchema');
 const Product = require('../../models/productSchema');
 const Address = require('../../models/addressSchema');
 const Order = require('../../models/orderSchema');
+const Wallet = require('../../models/walletSchema');
 const Coupon = require('../../models/cuponSchema');
 
 const Razorpay = require('razorpay');
@@ -84,6 +85,7 @@ const checkoutPage = async (req, res) => {
 const placeOrder = async (req, res) => {
     try {
         const { selectedAddress, payment_option } = req.body;
+        console.log('checking the payment option wallet : ',req.body);
         const userId = req.session.user;
 
         if (!userId) {
@@ -160,10 +162,7 @@ const placeOrder = async (req, res) => {
         console.log('discount form the placeOrder : ',discount);
         console.log('total amount after discount : ',totalAmount);
 
-        // let totalAmount = 0;
-        // userCart.items.forEach(item => {
-        //     totalAmount += item.price;
-        // });
+        
 
         if(paymentMethod === 'Cash on Delivery' && totalAmount > 10000){
             return res.status(400).json({
@@ -212,6 +211,57 @@ const placeOrder = async (req, res) => {
                 return res.status(500).json({ success: false, message: 'Payment processing error' });
             }
         }
+
+        if (paymentMethod === 'Wallet') {
+            try {
+                // Fetch the user's wallet balance
+                const userWallet = await Wallet.findOne( {userId} );
+
+                console.log('checking the user wallet : ', userWallet);
+        
+                if (!userWallet || userWallet.balance < totalAmount) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Insufficient wallet balance',
+                    });
+                }
+        
+                // Deduct the totalAmount from the wallet balance
+                userWallet.balance -= totalAmount;
+                await userWallet.save();
+        
+                // Create the order
+                const walletOrder = new Order({
+                    userId,
+                    address,
+                    paymentMethod,
+                    items: item,
+                    totalAmount,
+                    discount,
+                    status: 'Pending',
+                    orderDate: new Date(),
+                });
+        
+                await walletOrder.save();
+        
+                // Clear the cart after a successful order
+                await Cart.updateOne({ userId }, { $set: { items: [] } });
+        
+                return res.json({
+                    success: true,
+                    message: 'Order placed successfully using wallet',
+                    orderId: walletOrder._id,
+                    subtotal,
+                    discount,
+                    totalAmount,
+                    walletBalance: userWallet.balance,
+                });
+            } catch (walletError) {
+                console.error('Wallet payment error:', walletError.message);
+                return res.status(500).json({ success: false, message: 'Wallet payment processing error' });
+            }
+        }
+        
 
         const order = new Order({
             userId,

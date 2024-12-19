@@ -45,6 +45,11 @@ const orderSchema = new Schema({
         totalPrice: {
             type: Number,
             required: true,
+        },
+        itemStatus : {
+            type : String,
+            enum: ["Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Return Request", "Returned", "Completed","Return Approved", "Payment Pending"],
+            default : "Pending",
         }
     }],
     totalAmount: {
