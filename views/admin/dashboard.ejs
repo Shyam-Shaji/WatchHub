@@ -133,7 +133,7 @@
                                 <td>₹<%= product.salePrice.toFixed(2) %></td>
                                 <td>
                                     <% if (product.productImage && product.productImage.length > 0) { %>
-                                        <img src="<%= product.productImage[0] %>" alt="Product Image" style="width: 50px; height: 50px; object-fit: cover;">
+                                        <img src="/uploads/re-image/<%= product.productImage[0] %>" alt="Product Image" style="width: 50px; height: 50px; object-fit: cover;">
                                     <% } else { %>
                                         <span>No Image</span>
                                     <% } %>
@@ -233,7 +233,7 @@
                                                 <label class="form-check-label"></label>
                                             </div>
                                         </td>
-                                        <td><a href="#" class="fw-bold">#<%= order.orderId %></a></td>
+                                        <td><a href="#" class="fw-bold">#<%= order.orderId.slice(0, 8) %></a></td>
                                         <td><%= order.productName %></td>
                                         <td><%= new Date(order.orderDate).toLocaleDateString() %></td>
                                         <td><%= (parseInt(order.totalAmount) || 0).toFixed(2) %></td>
@@ -324,48 +324,51 @@
 }
 
 
-// function downloadPDF() {
-//     const { jsPDF } = window.jspdf;
-//     const doc = new jsPDF();
-
-//     doc.text("Sales Report", 14, 16);
-
-//     const table = document.querySelector("table");
-//     const filteredRows = Array.from(table.querySelectorAll("tbody tr")).filter(row => row.style.display !== 'none');
-
-//     // Column indexes to include: Product Name (2), Date (3), Total (4), Payment Method (6)
-//     const includeIndexes = [1, 2, 3, 4, 6];
-
-//     // Filter headers
-//     const headers = Array.from(table.querySelectorAll("thead th"))
-//       .map((th, index) => ({ text: th.innerText.trim(), index }))
-//       .filter(header => includeIndexes.includes(header.index))
-//       .map(header => header.text);
-
-//     const data = [];
-
-//     // Extract row data
-//     filteredRows.forEach(row => {
-//       const rowData = Array.from(row.querySelectorAll("td"))
-//         .map((td, index) => ({ text: td.innerText.trim(), index }))
-//         .filter(cell => includeIndexes.includes(cell.index))
-//         .map(cell => cell.text);
-//       data.push(rowData);
-//     });
-
-//     // Generate PDF table
-//     doc.autoTable({
-//       head: [headers],
-//       body: data,
-//       startY: 20,
-//     });
-
-//     doc.save("Sales_Report.pdf");
-//   }
-
-
 //new
-function downloadPDF() {
+// function downloadPDF() {
+//     // Get the selected filter value
+//     const filter = document.getElementById('filterOrders').value;
+
+//     // Send an AJAX request to the server with the filter criteria
+//     fetch(`/admin/generate-sales-report?filter=${filter}`, {
+//         method: 'GET',
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//         const { jsPDF } = window.jspdf;
+//         const doc = new jsPDF();
+
+//         doc.text("Sales Report", 14, 16);
+
+//         const tableData = data.completedOrders; // Assuming you receive filtered data from the server
+
+//         // Column headers
+//         const headers = ['Order ID', 'Product Name', 'Date', 'Total', 'Payment Status', 'Payment Method'];
+
+//         // Format data for table rows
+//         const rows = tableData.map(order => [
+//             order.orderId,
+//             order.productName,
+//             new Date(order.orderDate).toLocaleDateString(),
+//             parseFloat(order.totalAmount).toFixed(2),
+//             order.status,
+//             order.paymentMethod,
+//         ]);
+
+//         // Generate the PDF table
+//         doc.autoTable({
+//             head: [headers],
+//             body: rows,
+//             startY: 20,
+//         });
+
+//         // Save the PDF
+//         doc.save('Sales_Report.pdf');
+//     })
+//     .catch(error => console.error('Error generating PDF:', error));
+// }
+
+function downloadPDF() { 
     // Get the selected filter value
     const filter = document.getElementById('filterOrders').value;
 
@@ -378,19 +381,32 @@ function downloadPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
-        doc.text("Sales Report", 14, 16);
+        // Get the current date for download date
+        // const downloadDate = new Date().toLocaleDateString();
 
-        const tableData = data.completedOrders; // Assuming you receive filtered data from the server
+        // Add Download Date on the top left
+        // doc.setFontSize(12);
+        // doc.text(`Download Date: ${downloadDate}`, 14, 10);
+
+        // Add Website Name centered
+        doc.setFontSize(18);
+        doc.text("WatchHub", 105, 20, { align: 'center' });
+
+        // Sales Report Title centered
+        doc.setFontSize(16);
+        doc.text("Sales Report", 105, 30, { align: 'center' });
+
+        const tableData = data.completedOrders;
 
         // Column headers
         const headers = ['Order ID', 'Product Name', 'Date', 'Total', 'Payment Status', 'Payment Method'];
 
-        // Format data for table rows
+        // Format data for table rows with Order ID limited to 6 characters
         const rows = tableData.map(order => [
-            order.orderId,
+            order.orderId.slice(0, 6),
             order.productName,
             new Date(order.orderDate).toLocaleDateString(),
-            parseFloat(order.totalAmount).toFixed(2),
+            `$${parseFloat(order.totalAmount).toFixed(2)}`,
             order.status,
             order.paymentMethod,
         ]);
@@ -399,14 +415,24 @@ function downloadPDF() {
         doc.autoTable({
             head: [headers],
             body: rows,
-            startY: 20,
+            startY: 40,
+            styles: { fontSize: 10, cellPadding: 2 },
+            headStyles: { fillColor: [100, 100, 255] }, // Optional styling for header
         });
+
+        // Add Grand Total below the table
+        const grandTotal = tableData.reduce((sum, order) => sum + parseFloat(order.totalAmount) || 0, 0);
+        doc.setFontSize(14);
+        doc.text(`Grand Total: $${grandTotal.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
 
         // Save the PDF
         doc.save('Sales_Report.pdf');
     })
     .catch(error => console.error('Error generating PDF:', error));
 }
+
+
+
 
 //new excel
 function downloadExcel() {
@@ -446,69 +472,6 @@ function downloadExcel() {
     })
     .catch(error => console.error('Error generating Excel:', error));
 }
-
-
-
-// function downloadExcel() {
-//     const table = document.querySelector("table");
-//     const rows = Array.from(table.querySelectorAll("tbody tr")).filter(row => row.style.display !== 'none');
-//     const workbook = XLSX.utils.book_new();
-//     const data = [];
-
-//     // Extract data
-//     const headers = Array.from(table.querySelectorAll("thead th")).map(th => th.innerText.trim());
-//     data.push(headers);
-
-//     rows.forEach(row => {
-//         const rowData = Array.from(row.querySelectorAll("td")).map(td => td.innerText.trim());
-//         data.push(rowData);
-//     });
-
-//     const worksheet = XLSX.utils.aoa_to_sheet(data);
-//     XLSX.utils.book_append_sheet(workbook, worksheet, "Filtered Orders");
-
-//     XLSX.writeFile(workbook, "Filtered_Orders_Report.xlsx");
-// }
-
-
-//chart
-
-// let myChart;
-
-    // Initialize the chart with empty data
-    // function initializeChart() {
-    //     const ctx = document.getElementById('myChart').getContext('2d');
-    //     myChart = new Chart(ctx, {
-    //         type: 'line',  // You can change this to 'bar', 'line', 'pie', etc.
-    //         data: {
-    //             labels: [],  // This will be filled dynamically based on the data
-    //             datasets: [{
-    //                 label: 'Sales',
-    //                 data: [],  // This will also be updated dynamically
-    //                 borderColor: 'rgb(75, 192, 192)',
-    //                 backgroundColor: 'rgba(75, 192, 192, 0.2)',
-    //                 fill: false
-    //             }]
-    //         },
-    //         options: {
-    //             responsive: true,
-    //             scales: {
-    //                 x: {
-    //                     title: {
-    //                         display: true,
-    //                         text: 'Date'
-    //                     }
-    //                 },
-    //                 y: {
-    //                     title: {
-    //                         display: true,
-    //                         text: 'Sales Amount'
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     });
-    // }
 
     // Function to update the chart based on the selected filter
     // Function to update the chart when a filter button is clicked

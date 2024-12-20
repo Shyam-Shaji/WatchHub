@@ -477,72 +477,86 @@ const returnOrderItem = async (req, res) => {
     }
 };
 
-const getInvoicePage = async(req,res)=>{
+const getInvoicePage = async (req, res) => {
     try {
-
-        const user = req.session.user;
-
-        if(!user){
-            return res.status(400).send('User session not found');
-        }
-
-        const userData = await User.findOne({_id : user});
-
-        if(!userData){
-            return res.status(404).send('User not found');
-        }
-
-        const orderId = req.params.id;
-        const order = await Order.findById(orderId).populate('items.product');
-
-        if(!order){
-            return res.status(404).send('Order not found');
-        }
-
-        const doc = new PDFDocument();
-        
-
-        res.setHeader('Content-Disposition',`attachment; filename=invoice-${orderId}.pdf`);
-        res.setHeader('Content-Type','application/pdf');
-
-        doc.pipe(res);
-
-        doc.fontSize(20).text('Invoice',{align : 'center'});
-        doc.moveDown();
-
-        doc.fontSize(12).text(`Order ID : ${order._id}`);
-        doc.text(`Customer : ${userData.name}`);
-        doc.text(`Date: ${order.orderDate.toDateString()}`);
-
-        doc.moveDown();
-
-        doc.fontSize(12).text('product',50, doc.y, {width : 200, continued : true});
-        doc.text('Quantity', 300, doc.y, {width : 100, continued :true});
-        doc.text('Price',400, doc.y);
-        doc.moveDown();
-
-        doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-        doc.moveDown();
-
-        order.items.forEach((item)=>{
-            doc.text(item.product.productName, 50, doc.y, {width : 200, continued : true});
-            doc.text(item.quantity.toString(), 300, doc.y, {width : 100, continued : true});
-            doc.text(`${item.product.salePrice}`,400,doc.y);
-            doc.moveDown();
+      const user = req.session.user;
+  
+      if (!user) {
+        return res.status(400).send("User session not found");
+      }
+  
+      const userData = await User.findOne({ _id: user });
+  
+      if (!userData) {
+        return res.status(404).send("User not found");
+      }
+  
+      const orderId = req.params.id;
+      const order = await Order.findById(orderId).populate("items.product");
+  
+      if (!order) {
+        return res.status(404).send("Order not found");
+      }
+  
+      const doc = new PDFDocument({ margin: 50 });
+  
+      res.setHeader("Content-Disposition", `attachment; filename=invoice-${orderId}.pdf`);
+      res.setHeader("Content-Type", "application/pdf");
+  
+      doc.pipe(res);
+  
+      // Header
+      doc.fontSize(20).text("Invoice", { align: "center" });
+      doc.moveDown(1);
+  
+      // Order Information
+      doc.fontSize(12).text(`Order ID: ${order._id}`);
+      doc.text(`Customer: ${userData.name}`);
+      doc.text(`Date: ${order.orderDate.toDateString()}`);
+      doc.moveDown(1);
+  
+      // Table Header
+      const startX = 50;
+      const columnWidths = {
+        product: 250,
+        quantity: 100,
+        price: 100,
+      };
+  
+      doc.fontSize(12).font("Helvetica-Bold");
+      doc.text("Product", startX, doc.y, { width: columnWidths.product });
+      doc.text("Quantity", startX + columnWidths.product, doc.y, { width: columnWidths.quantity, align: "center" });
+      doc.text("Price", startX + columnWidths.product + columnWidths.quantity, doc.y, { width: columnWidths.price, align: "right" });
+      doc.moveDown(0.5);
+  
+      // Draw a line under the table header
+      doc.moveTo(startX, doc.y).lineTo(startX + columnWidths.product + columnWidths.quantity + columnWidths.price, doc.y).stroke();
+      doc.moveDown(0.5);
+  
+      // Table Rows
+      doc.font("Helvetica");
+      order.items.forEach((item) => {
+        doc.text(item.product.productName, startX, doc.y, { width: columnWidths.product });
+        doc.text(item.quantity.toString(), startX + columnWidths.product, doc.y, { width: columnWidths.quantity, align: "center" });
+        doc.text(`$${item.product.salePrice.toFixed(2)}`, startX + columnWidths.product + columnWidths.quantity, doc.y, {
+          width: columnWidths.price,
+          align: "right",
         });
-
-        doc.moveDown();
-        doc.fontSize(14).text(`Total : $${order.totalAmount}`, {align : 'right'});
-
-        doc.end();
-
-        // res.render('invoice',{user : userData,order});
-        
+        doc.moveDown(0.5);
+      });
+  
+      doc.moveDown(1);
+  
+      // Total Amount
+      doc.fontSize(14).font("Helvetica-Bold").text(`Total: $${order.totalAmount.toFixed(2)}`, startX, doc.y, { align: "right" });
+  
+      doc.end();
     } catch (error) {
-        console.error('Error generating invoice',error);
-        res.status(500).send('Internal Server Error');
+      console.error("Error generating invoice", error);
+      res.status(500).send("Internal Server Error");
     }
-}
+  };
+  
 
 const retryPayment = async (req,res)=>{
     try {

@@ -38,99 +38,271 @@ const moment = require('moment');
 
 // }
 
+// const downloadReport = async (req, res) => {
+//   const format = req.query.format;
+//   const filter = req.query.filter || 'all'
+
+//   // Filter the salesData based on the filter (e.g., "today", "thisWeek", "lastMonth")
+//   let filteredSalesData = salesData;
+//   const currentDate = new Date();
+
+//   if (filter === 'today') {
+//       filteredSalesData = salesData.filter((sale) => {
+//           const saleDate = new Date(sale.date);
+//           return (
+//               saleDate.getFullYear() === currentDate.getFullYear() &&
+//               saleDate.getMonth() === currentDate.getMonth() &&
+//               saleDate.getDate() === currentDate.getDate()
+//           );
+//       });
+//   } else if (filter === 'thisWeek') {
+//       const weekStart = new Date(
+//           currentDate.setDate(currentDate.getDate() - currentDate.getDay())
+//       );
+//       const weekEnd = new Date(weekStart);
+//       weekEnd.setDate(weekStart.getDate() + 6);
+
+//       filteredSalesData = salesData.filter((sale) => {
+//           const saleDate = new Date(sale.date);
+//           return saleDate >= weekStart && saleDate <= weekEnd;
+//       });
+//   } else if (filter === 'lastMonth') {
+//       const lastMonth = new Date();
+//       lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+//       filteredSalesData = salesData.filter((sale) => {
+//           const saleDate = new Date(sale.date);
+//           return (
+//               saleDate.getFullYear() === lastMonth.getFullYear() &&
+//               saleDate.getMonth() === lastMonth.getMonth()
+//           );
+//       });
+//   }
+
+//   const grandTotal = filteredSalesData.reduce((sum, sale) => {
+//     return sum + parseFloat(sale.total) || 0;
+// }, 0);
+
+//   if (format === 'pdf') {
+//       const pdfPath = path.join(__dirname, '../public/reports/sales-report.pdf');
+//       const pdfDoc = new PDFDocument();
+
+//       pdfDoc.pipe(fs.createWriteStream(pdfPath));
+
+//       pdfDoc.fontSize(18).text('Sales Report', { align: 'center' }).moveDown(2);
+//       filteredSalesData.forEach((sale, index) => {
+//           pdfDoc
+//               .fontSize(12)
+//               .text(
+//                   `${index + 1}. Order ID: ${sale.orderId}, Billing Name: ${sale.billingName}, Total: $${sale.total}, Status: ${sale.paymentStatus}`,
+//                   { align: 'left' }
+//               );
+//       });
+
+
+//       pdfDoc.moveDown(2);
+//         pdfDoc.fontSize(14).text(`Grand Total: $${grandTotal.toFixed(2)}`, { align: 'right' });
+
+//       pdfDoc.end();
+
+//       res.download(pdfPath, 'sales-report.pdf');
+//   } else if (format === 'excel') {
+//       const workbook = new ExcelJs.Workbook();
+//       const worksheet = workbook.addWorksheet('Sales Report');
+
+//       const downloadDate = new Date().toLocaleDateString();
+
+//       worksheet.addRow(['Sales Report']);
+//       worksheet.addRow([`Download Date: ${downloadDate}`]);
+//       worksheet.addRow([]);
+
+//       worksheet.addRow([
+//           'Order ID',
+//           'Billing Name',
+//           'Date',
+//           'Total',
+//           'Payment Status',
+//           'Payment Method',
+//       ]);
+
+//       filteredSalesData.forEach((sale) => {
+//           worksheet.addRow([
+//               sale.orderId,
+//               sale.billingName,
+//               sale.date,
+//               parseFloat(sale.total).toFixed(2),
+//               sale.paymentStatus,
+//               sale.paymentMethod,
+//           ]);
+//       });
+
+//       worksheet.addRow([]);
+//         worksheet.addRow(['', '', '', `Grand Total: $${grandTotal.toFixed(2)}`]);
+
+
+//       const excelPath = path.join(__dirname, '../public/reports/sales-report.xlsx');
+
+//       await workbook.xlsx.writeFile(excelPath);
+
+//       res.download(excelPath, 'sales-report.xlsx');
+//   } else {
+//       res.status(400).send('Invalid format. Use ?format=pdf or ?format=excel.');
+//   }
+// };
+
+
 const downloadReport = async (req, res) => {
-  const format = req.query.format;
-  const filter = req.query.filter || 'all'
-
-  // Filter the salesData based on the filter (e.g., "today", "thisWeek", "lastMonth")
-  let filteredSalesData = salesData;
-  const currentDate = new Date();
-
-  if (filter === 'today') {
+    const format = req.query.format;
+    const filter = req.query.filter || 'all';
+  
+    // Filter the salesData based on the filter (e.g., "today", "thisWeek", "lastMonth")
+    let filteredSalesData = salesData;
+    const currentDate = new Date();
+  
+    if (filter === 'today') {
       filteredSalesData = salesData.filter((sale) => {
-          const saleDate = new Date(sale.date);
-          return (
-              saleDate.getFullYear() === currentDate.getFullYear() &&
-              saleDate.getMonth() === currentDate.getMonth() &&
-              saleDate.getDate() === currentDate.getDate()
-          );
+        const saleDate = new Date(sale.date);
+        return (
+          saleDate.getFullYear() === currentDate.getFullYear() &&
+          saleDate.getMonth() === currentDate.getMonth() &&
+          saleDate.getDate() === currentDate.getDate()
+        );
       });
-  } else if (filter === 'thisWeek') {
-      const weekStart = new Date(
-          currentDate.setDate(currentDate.getDate() - currentDate.getDay())
-      );
+    } else if (filter === 'thisWeek') {
+      const weekStart = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay()));
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 6);
-
+  
       filteredSalesData = salesData.filter((sale) => {
-          const saleDate = new Date(sale.date);
-          return saleDate >= weekStart && saleDate <= weekEnd;
+        const saleDate = new Date(sale.date);
+        return saleDate >= weekStart && saleDate <= weekEnd;
       });
-  } else if (filter === 'lastMonth') {
+    } else if (filter === 'lastMonth') {
       const lastMonth = new Date();
       lastMonth.setMonth(lastMonth.getMonth() - 1);
-
+  
       filteredSalesData = salesData.filter((sale) => {
-          const saleDate = new Date(sale.date);
-          return (
-              saleDate.getFullYear() === lastMonth.getFullYear() &&
-              saleDate.getMonth() === lastMonth.getMonth()
-          );
+        const saleDate = new Date(sale.date);
+        return (
+          saleDate.getFullYear() === lastMonth.getFullYear() &&
+          saleDate.getMonth() === lastMonth.getMonth()
+        );
       });
+    }
+  
+    const grandTotal = filteredSalesData.reduce((sum, sale) => {
+      return sum + parseFloat(sale.total) || 0;
+    }, 0);
+  
+    const websiteName = 'WatchHub';
+    const downloadDate = new Date().toLocaleDateString();
+  
+    // PDF Generation
+    // PDF Generation
+// PDF Generation
+if (format === 'pdf') {
+    const pdfPath = path.join(__dirname, '../public/reports/sales-report.pdf');
+    const pdfDoc = new PDFDocument();
+  
+    pdfDoc.pipe(fs.createWriteStream(pdfPath));
+  
+    // Download Date on the left side
+    pdfDoc.fontSize(12).text(`Download Date: ${downloadDate}`, 20, 20);
+  
+    // Website Name centered
+    pdfDoc
+      .fontSize(14)
+      .text(`Website: ${websiteName}`, { align: 'center' })
+      .moveDown(1);
+  
+    // Sales Report Title centered
+    pdfDoc.fontSize(18).text('Sales Report', { align: 'center' }).moveDown(1);
+  
+    // Table Headers
+    pdfDoc
+      .fontSize(12)
+      .text('Order ID', 50, pdfDoc.y)
+      .text('Billing Name', 150, pdfDoc.y)
+      .text('Date', 280, pdfDoc.y)
+      .text('Total', 370, pdfDoc.y)
+      .text('Status', 450, pdfDoc.y)
+      .text('Payment Method', 520, pdfDoc.y);
+  
+    pdfDoc.moveDown(1);
+  
+    // Sales Data
+    filteredSalesData.forEach((sale, index) => {
+      pdfDoc
+        .fontSize(12)
+        .text(sale.orderId.slice(0, 6), 50, pdfDoc.y)
+        .text(sale.billingName, 150, pdfDoc.y)
+        .text(new Date(sale.date).toLocaleDateString(), 280, pdfDoc.y)
+        .text(`$${parseFloat(sale.total).toFixed(2)}`, 370, pdfDoc.y)
+        .text(sale.paymentStatus, 450, pdfDoc.y)
+        .text(sale.paymentMethod, 520, pdfDoc.y);
+  
+      pdfDoc.moveDown(0.5);
+    });
+  
+    // Grand Total aligned to the right
+    pdfDoc.moveDown(2);
+    pdfDoc.fontSize(14).text(`Grand Total: $${grandTotal.toFixed(2)}`, { align: 'right' });
+  
+    pdfDoc.end();
+  
+    res.download(pdfPath, 'sales-report.pdf');
   }
-
-  if (format === 'pdf') {
-      const pdfPath = path.join(__dirname, '../public/reports/sales-report.pdf');
-      const pdfDoc = new PDFDocument();
-
-      pdfDoc.pipe(fs.createWriteStream(pdfPath));
-
-      pdfDoc.fontSize(18).text('Sales Report', { align: 'center' }).moveDown(2);
-      filteredSalesData.forEach((sale, index) => {
-          pdfDoc
-              .fontSize(12)
-              .text(
-                  `${index + 1}. Order ID: ${sale.orderId}, Billing Name: ${sale.billingName}, Total: $${sale.total}, Status: ${sale.paymentStatus}`,
-                  { align: 'left' }
-              );
-      });
-
-      pdfDoc.end();
-
-      res.download(pdfPath, 'sales-report.pdf');
-  } else if (format === 'excel') {
+  
+  
+    // Excel Generation
+    else if (format === 'excel') {
       const workbook = new ExcelJs.Workbook();
       const worksheet = workbook.addWorksheet('Sales Report');
-
+  
+      // Title and Website Name
+      worksheet.addRow(['Sales Report']);
+      worksheet.addRow([`Website: ${websiteName}`]);
+      worksheet.addRow([`Download Date: ${downloadDate}`]);
+      worksheet.addRow([]);
+  
+      // Table Headers
       worksheet.addRow([
-          'Order ID',
-          'Billing Name',
-          'Date',
-          'Total',
-          'Payment Status',
-          'Payment Method',
+        'Order ID',
+        'Billing Name',
+        'Date',
+        'Total',
+        'Payment Status',
+        'Payment Method',
       ]);
-
+  
+      // Sales Data
       filteredSalesData.forEach((sale) => {
-          worksheet.addRow([
-              sale.orderId,
-              sale.billingName,
-              sale.date,
-              sale.total,
-              sale.paymentStatus,
-              sale.paymentMethod,
-          ]);
+        worksheet.addRow([
+          sale.orderId.slice(0, 6),
+          sale.billingName,
+          sale.date,
+          parseFloat(sale.total).toFixed(2),
+          sale.paymentStatus,
+          sale.paymentMethod,
+        ]);
       });
-
+  
+      // Grand Total
+      worksheet.addRow([]);
+      worksheet.addRow(['', '', '', `Grand Total: $${grandTotal.toFixed(2)}`]);
+  
       const excelPath = path.join(__dirname, '../public/reports/sales-report.xlsx');
-
+  
       await workbook.xlsx.writeFile(excelPath);
-
+  
       res.download(excelPath, 'sales-report.xlsx');
-  } else {
+    }
+    // Invalid Format
+    else {
       res.status(400).send('Invalid format. Use ?format=pdf or ?format=excel.');
-  }
-};
+    }
+  };
+  
 
 const generateSalesReport = async (req, res) => {
     try {
