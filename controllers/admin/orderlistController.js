@@ -45,32 +45,6 @@ const orderList = async (req, res) => {
     }
 };
 
-
-// const updateOrderStatus = async (req, res) => {
-//     try {
-//         const { orderId } = req.params;
-//         const { status } = req.body;
-//         const { page = 1 } = req.query;  // Get the current page from query params
-
-//         const order = await Order.findByIdAndUpdate(orderId, { status }, { new: true });
-
-//         if (!order) {
-//             return res.status(404).json({ success: false, message: 'Order not found' });
-//         }
-
-//         // If the order is cancelled, provide a redirect URL
-//         if (status === 'Cancelled') {
-//             return res.redirect('/admin/orderlist');
-//         }
-
-//         // For other status updates, send a JSON success response
-//         res.json({ success: true, message: 'Order status updated', order });
-//     } catch (error) {
-//         console.error('Error updating order status:', error);
-//         res.status(500).json({ success: false, message: 'Failed to update order status' });
-//     }
-// };
-
 const updateOrderStatus = async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -129,7 +103,6 @@ const returnApprove = async (req, res) => {
     const { id } = req.params;
 
     try {
-        // console.log('ajsdfjlkdjflkj chekint return approve ',id);
         // Fetch the order details
         const order = await Order.findOne({ _id:id });
         console.log(order)

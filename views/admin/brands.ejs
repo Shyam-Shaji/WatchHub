@@ -223,12 +223,13 @@ function validateForm() {
   let isValid = true;
 
   
-  if (!/^[A-Za-z]+$/.test(brandName)) {
-    brandNameError.textContent = "Brand name must contain only letters and no spaces.";
-    isValid = false;
-  } else {
-    brandNameError.textContent = "";
-  }
+  if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(brandName)) {
+  brandNameError.textContent =
+    "Brand name can contain letters and only single spaces between words.";
+  isValid = false;
+} else {
+  brandNameError.textContent = "";
+}
 
   
   if (brandImage === 0) {

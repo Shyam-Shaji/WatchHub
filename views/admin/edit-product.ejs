@@ -151,7 +151,7 @@
     <script>
 
 function sanitizeInput(input) {
-        input.value = input.value.replace(/\s+/g, ''); // Remove all white spaces
+        input.value = input.value.replace(/\s+/g, ' '); // Remove all white spaces
     }
     console.log('is it working product edit validation');
     function validateNumberInput(input) {
@@ -305,9 +305,7 @@ function sanitizeInput(input) {
         });
     }
 }
-
-
-    </script>
+</script>
         
 
 <%- include('../partials/admin/admin-footer.ejs') %>

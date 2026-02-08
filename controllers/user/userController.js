@@ -1,380 +1,329 @@
-const User = require('../../models/userSchema.js');
-const Category = require('../../models/categorySchema.js');
-const Product = require('../../models/productSchema.js');
-const nodemail = require('nodemailer');
-const bcrypt = require('bcrypt');
-const env = require('dotenv').config();
+const User = require("../../models/userSchema.js");
+const Category = require("../../models/categorySchema.js");
+const Product = require("../../models/productSchema.js");
+const nodemail = require("nodemailer");
+const bcrypt = require("bcrypt");
+const env = require("dotenv").config();
 
-// const loadLogin = async(req,res)=>{
-//     try {
-//        return res.render('login') ;
-//     } catch (error) {
-//         console.log("Login Page Not Found");
-//         res.status(500).send("Server Error");
-//     }
-// }
 
-const loadLogin = async(req,res)=>{
-    try {
-
-        if(!req.session.user){
-            return res.render('login');
-        }else{
-            res.redirect('/');
-        }
-        
-    } catch (error) {
-       res.redirect('/pageNotFound');
+const loadLogin = async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.render("login");
+    } else {
+      res.redirect("/");
     }
-}
+  } catch (error) {
+    res.redirect("/pageNotFound");
+  }
+};
 
-const loadSignup = async(req,res)=>{
-    try {
-        return res.render('signup');
-    } catch (error) {
-        console.log("Signup Page Not Found");
-        res.status(500).send("Server Error");
-    }
-}
+const loadSignup = async (req, res) => {
+  try {
+    return res.render("signup");
+  } catch (error) {
+    console.log("Signup Page Not Found");
+    res.status(500).send("Server Error");
+  }
+};
 
-const logout = async(req,res)=>{
-    try {
+const logout = async (req, res) => {
+  try {
+    req.session.destroy((error) => {
+      if (error) {
+        console.log("Session destruction error", error.message);
+        return res.redirect("/pageNotFound");
+      }
+      return res.redirect("/login");
+    });
+  } catch (error) {
+    console.log("Logout error", error);
+    res.redirect("/pageNotFound");
+  }
+};
 
-        req.session.destroy((error)=>{
-            if(error){
-                console.log("Session destruction error",error.message);
-                return res.redirect("/pageNotFound");
-            }
-            return res.redirect('/login');
-        })
-        
-    } catch (error) {
-        console.log("Logout error",error);
-        res.redirect('/pageNotFound');
-    }
-}
-
-const pageNotFound = async(req,res)=>{
-    try {
-        res.render('404');
-    } catch (error) {
-        res.redirect('/pageNotFound');
-    }
-}
+const pageNotFound = async (req, res) => {
+  try {
+    res.render("404");
+  } catch (error) {
+    res.redirect("/pageNotFound");
+  }
+};
 
 const loadHomePage = async (req, res) => {
-    try {
-        const user = req.session.user;
-        const categories = await Category.find({ isListed: true });
-        let productData = await Product.find({
-            isBlocked: false,
-            category: { $in: categories.map(category => category._id) },
-            quantity: { $gt: 0 }
-        }).limit(12);
+  try {
+    const user = req.session.user;
+    const categories = await Category.find({ isListed: true });
+    let productData = await Product.find({
+      isBlocked: false,
+      category: { $in: categories.map((category) => category._id) },
+      quantity: { $gt: 0 },
+    }).limit(12);
 
-        
-        productData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        productData = productData
+    productData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    productData = productData;
 
-        if (user) {
-            const userData = await User.findOne({ _id: user });
-            console.log('Checking userData: ', userData);
+    if (user) {
+      const userData = await User.findOne({ _id: user });
+      console.log("Checking userData: ", userData);
 
-           
-            res.render('home', { user: userData, products: productData });
-        } else {
-            
-            return res.render('home', { products: productData, user: null });
-        }
-    } catch (error) {
-        console.log("Home page not loading", error);
-        res.status(500).send("Server Error");
+      res.render("home", { user: userData, products: productData });
+    } else {
+      return res.render("home", { products: productData, user: null });
     }
+  } catch (error) {
+    console.log("Home page not loading", error);
+    res.status(500).send("Server Error");
+  }
 };
 
-
-// const signup = async(req,res)=>{
-
-//     // const {name,email,phone,password} = req.body;
-
-//     try {
-
-//         const {email,password,cPassword} = req.body;
-
-//         // const newUser = new User ({name,email,phone,password});
-
-//         console.log(newUser);
-
-//         await newUser.save();
-//         return res.redirect('/signup');
-        
-//     } catch (error) {
-//         console.log('Error for save usesr',error);
-//         res.status(500).send("Internel server error");
-//     }
-// }
-
-async function generateOtp () {
-    console.log("OTP generation function called."); 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log("Generated OTP:", otp);
-    return otp;
+async function generateOtp() {
+  console.log("OTP generation function called.");
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  console.log("Generated OTP:", otp);
+  return otp;
 }
 async function sendVerificationEmail(email, otp) {
-    try {
-        console.log("Sending OTP to email:", email);
+  try {
+    console.log("Sending OTP to email:", email);
 
-        const transporter = nodemail.createTransport({
-            service: 'gmail',
-            port: 587,
-            secure: false,
-            requireTLS: true,
-            auth: {
-                user: process.env.NODEMAILER_EMAIL,
-                pass: process.env.NODEMAILER_PASSWORD,
-            }
-        });
+    const transporter = nodemail.createTransport({
+      service: "gmail",
+      port: 587,
+      secure: false,
+      requireTLS: true,
+      auth: {
+        user: process.env.NODEMAILER_EMAIL,
+        pass: process.env.NODEMAILER_PASSWORD,
+      },
+    });
 
-        const info = await transporter.sendMail({
-            from: process.env.NODEMAILER_EMAIL,
-            to: email,
-            subject: "Verify your account",
-            text: `Your OTP is ${otp}`,
-            html: `<b>Your OTP is ${otp}</b>`,
-        });
+    const info = await transporter.sendMail({
+      from: process.env.NODEMAILER_EMAIL,
+      to: email,
+      subject: "Verify your account",
+      text: `Your OTP is ${otp}`,
+      html: `<b>Your OTP is ${otp}</b>`,
+    });
 
-        console.log("Email sent:", info); 
-        return info.accepted.length > 0;
-
-    } catch (error) {
-        console.log("Error Sending Email", error);
-        return false;
-    }
+    console.log("Email sent:", info);
+    return info.accepted.length > 0;
+  } catch (error) {
+    console.log("Error Sending Email", error);
+    return false;
+  }
 }
 
+const signup = async (req, res) => {
+  try {
+    const { name, phone, email, password, password_confirm } = req.body;
 
-const signup = async(req, res) => {
-    try {
-        const { name, phone, email, password, password_confirm } = req.body;
-
-       
-        if (password !== password_confirm) {
-            return res.render("signup", { message: "Passwords do not match" });
-        }
-
-       
-        const findUser = await User.findOne({ email: email });
-        if (findUser) {
-            return res.render('signup', { message: "User with this email already exists" });
-        }
-
-        
-        const otp = await generateOtp();
-       
-
-       
-        const emailSent = await sendVerificationEmail(email, otp);
-        if (!emailSent) {
-            return res.json("Error in sending OTP via email");
-        }
-
-        
-       
-        req.session.userOtp = otp;
-        req.session.userData = { name, phone, email, password };
-       
-
-
-       
-        console.log("OTP Sent:", otp);
-        res.render('verify-otp');
-
-    } catch (error) {
-        console.log("Signup error:", error);
-        res.render('/pageNotFound');
+    if (password !== password_confirm) {
+      return res.render("signup", { message: "Passwords do not match" });
     }
+
+    const findUser = await User.findOne({ email: email });
+    if (findUser) {
+      return res.render("signup", {
+        message: "User with this email already exists",
+      });
+    }
+
+    const otp = await generateOtp();
+
+    const emailSent = await sendVerificationEmail(email, otp);
+    if (!emailSent) {
+      return res.json("Error in sending OTP via email");
+    }
+
+    req.session.userOtp = otp;
+    req.session.userData = { name, phone, email, password };
+
+    console.log("OTP Sent:", otp);
+    res.render("verify-otp");
+  } catch (error) {
+    console.log("Signup error:", error);
+    res.render("/pageNotFound");
+  }
 };
 
-const securePassword = async(password)=>{
-    try {
+const securePassword = async (password) => {
+  try {
+    const passwordHash = await bcrypt.hash(password, 10);
 
-        const passwordHash = await bcrypt.hash(password,10)
+    return passwordHash;
+  } catch (error) {
+    console.log("Error in securePassword");
+  }
+};
 
-        return passwordHash;
-        
-    } catch (error) {
-        
+const verifyOtp = async (req, res) => {
+  try {
+    const { otp } = req.body;
+    console.log(otp);
+
+    if (otp == req.session.userOtp) {
+      const user = req.session.userData;
+      console.log("loggin user: ", user);
+      const passwordHash = await securePassword(user.password);
+
+      const saveUserData = new User({
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        password: passwordHash,
+      });
+      await saveUserData.save();
+      req.session.user = saveUserData._id;
+      res.json({ success: true, redirectUrl: "/" });
+    } else {
+      res
+        .status(400)
+        .json({ success: false, message: "Invalid OTP, Please try again" });
     }
-}
+  } catch (error) {
+    console.log("Error Verifying OTP", error);
+    res.status(500).json({ success: false, message: "An error occured" });
+  }
+};
 
-const verifyOtp = async(req,res)=>{
-    try {
-        const {otp} = req.body;
-        console.log(otp);
+const resendOtp = async (req, res) => {
+  try {
+    const { email } = req.session.userData;
 
-        if(otp == req.session.userOtp){
-            const user = req.session.userData;
-            console.log('loggin user: ',user);
-            const passwordHash = await securePassword(user.password);
-
-            const saveUserData = new User({
-                name : user.name,
-                email : user.email,
-                phone : user.phone,
-                password : passwordHash,
-            })
-            await saveUserData.save();
-            req.session.user = saveUserData._id;
-            res.json({success:true,redirectUrl:"/"})
-        }else{
-            res.status(400).json({success:false,message:"Invalid OTP, Please try again"})
-        }
-
-    } catch (error) {
-        console.log("Error Verifying OTP",error);
-        res.status(500).json({success:false,message:"An error occured"});
+    if (!email) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Email not found in session" });
     }
-}
 
-const resendOtp = async (req,res)=>{
-    try {
+    const otp = generateOtp();
+    req.session.userOtp = otp;
 
-        const {email} = req.session.userData;
+    const emailSent = await sendVerificationEmail(email.otp);
 
-        if(!email){
-            return res.status(400).json({success:false,message:"Email not found in session"})
-        }
-
-        const otp = generateOtp();
-        req.session.userOtp = otp;
-
-        const emailSent = await sendVerificationEmail(email.otp);
-
-        if(emailSent){
-            console.log("Resend OTP: ",otp);
-            res.status(200).json({success:true,message:"OTP Resend Successfully"});
-        }else{
-            res.status(500).json({success:false,message:"Faild to resend OTP. Please try again"});
-        }
-        
-    } catch (error) {
-        console.log("Error resending OTP",error);
-        res.status(500).json({success:false,message:"Internal Server Error. Please try again"});
+    if (emailSent) {
+      console.log("Resend OTP: ", otp);
+      res
+        .status(200)
+        .json({ success: true, message: "OTP Resend Successfully" });
+    } else {
+      res
+        .status(500)
+        .json({
+          success: false,
+          message: "Faild to resend OTP. Please try again",
+        });
     }
-}
+  } catch (error) {
+    console.log("Error resending OTP", error);
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Internal Server Error. Please try again",
+      });
+  }
+};
 
-const login = async(req,res)=>{
-    try {
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-        const {email,password} = req.body;
+    const findUser = await User.findOne({ isAdmin: 0, email: email });
 
-        const findUser = await User.findOne({ isAdmin:0, email : email });
-
-        if(!findUser){
-            return res.render('login',{message:"User not found"});
-        }
-
-        if(findUser.isBlocked){
-            return res.render('login',{message:"User is blocked by admin"});
-        }
-
-        const passwordMatch = await bcrypt.compare(password,findUser.password);
-
-        if(!passwordMatch){
-            return res.render('login',{message:"Incorrect Password"});
-        }
-
-        req.session.user = findUser._id;
-        
-        res.redirect('/');
-        
-    } catch (error) {
-
-        console.log("Login Error");
-        res.render('login',{message:"Login failed. Please try again later."});
-        
+    if (!findUser) {
+      return res.render("login", { message: "User not found" });
     }
-}
+
+    if (findUser.isBlocked) {
+      return res.render("login", { message: "User is blocked by admin" });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, findUser.password);
+
+    if (!passwordMatch) {
+      return res.render("login", { message: "Incorrect Password" });
+    }
+
+    req.session.user = findUser._id;
+
+    res.redirect("/");
+  } catch (error) {
+    console.log("Login Error");
+    res.render("login", { message: "Login failed. Please try again later." });
+  }
+};
 
 const loadProductDetail = async (req, res) => {
-    try {
-        const userId = req.session.user;
-        if (!userId) {
-            return res.redirect('/login');
-        }
-        
-        const userData = await User.findById(userId);
-        const productId = req.params.id;
-        const product = await Product.findById(productId);
-        
-        const relatedProducts = await Product.find({
-            category: product.category,
-            _id: { $ne: productId }
-        }).limit(4);
-
-        res.render('productDetails', {
-            product,
-            relatedProducts,
-            user: userData, 
-        });
-
-    } catch (error) {
-        console.error('Error loading product details:', error);
-        res.status(500).send('Server error');
+  try {
+    const userId = req.session.user;
+    if (!userId) {
+      return res.redirect("/login");
     }
+
+    const userData = await User.findById(userId);
+    const productId = req.params.id;
+    const product = await Product.findById(productId);
+
+    const relatedProducts = await Product.find({
+      category: product.category,
+      _id: { $ne: productId },
+    }).limit(4);
+
+    res.render("productDetails", {
+      product,
+      relatedProducts,
+      user: userData,
+    });
+  } catch (error) {
+    console.error("Error loading product details:", error);
+    res.status(500).send("Server error");
+  }
 };
 
 //user dashboard
 const userDashboard = async (req, res) => {
-    try {
-        
-        const userId = req.session.user; 
+  try {
+    const userId = req.session.user;
 
-        
-        const user = await User.findById(userId);
+    const user = await User.findById(userId);
 
-        
-        if (!user) {
-            return res.status(404).send('User not found');
-        }
-
-        
-        res.render('user-profile', { user });
-        
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Server Error');
+    if (!user) {
+      return res.status(404).send("User not found");
     }
+
+    res.render("user-profile", { user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
 };
 
-const updateUserProfile = async(req,res)=>{
-    try {
+const updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.session.user;
+    const { name, email, phone } = req.body;
 
-        const userId = req.session.user;
-        const {name, email, phone} = req.body;
-
-        await User.findByIdAndUpdate(userId,{name, email,phone});
-        res.redirect('/user-profile');
-        
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Server Error');
-    }
-}
-
-
+    await User.findByIdAndUpdate(userId, { name, email, phone });
+    res.redirect("/user-profile");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+};
 
 module.exports = {
-    loadHomePage,
-    pageNotFound,
-    loadLogin,
-    loadSignup,
-    signup,
-    logout,
-    verifyOtp,
-    resendOtp,
-    login,
-    loadProductDetail,
-    userDashboard,
-    updateUserProfile,
-}
+  loadHomePage,
+  pageNotFound,
+  loadLogin,
+  loadSignup,
+  signup,
+  logout,
+  verifyOtp,
+  resendOtp,
+  login,
+  loadProductDetail,
+  userDashboard,
+  updateUserProfile,
+};
